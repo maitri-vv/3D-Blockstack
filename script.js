@@ -207,6 +207,7 @@ function startGame() {
   }
 }
 // Function to create a ring effect at (x, y, z)
+// Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
