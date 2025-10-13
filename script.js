@@ -206,36 +206,8 @@ function startGame() {
     camera.lookAt(0, 0, 0);
   }
 }
-function createRingEffect(x, y, z) {
-    const ringGeometry = new THREE.RingGeometry(1.2, 1.5, 32); // Outer and inner radius
-    const ringMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff, // White glow effect
-        transparent: true,
-        opacity: 0.8, // Start with visible opacity
-        side: THREE.DoubleSide
-    });
-
-    const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
-    ringMesh.position.set(x, y + 0.1, z); // Slightly above the block
-    ringMesh.rotation.x = -Math.PI / 2; // Make it flat on the block
-
-    scene.add(ringMesh);
-
-    // Animate the ring (grow and fade)
-    new TWEEN.Tween(ringMesh.scale)
-        .to({ x: 2, y: 2 }, 800) // Expand outward
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start();
-
-    new TWEEN.Tween(ringMaterial)
-        .to({ opacity: 0 }, 800) // Fade out
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onComplete(() => scene.remove(ringMesh)) // Remove after animation
-        .start();
-}
-
-
-
+// Function to create a ring effect at (x, y, z)
+// Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
