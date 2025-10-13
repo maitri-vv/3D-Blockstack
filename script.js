@@ -17,6 +17,30 @@ const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
 
+// High score UI references
+const endScoreElement = document.getElementById("end-score");
+const endHighScoreElement = document.getElementById("end-high-score");
+
+// High score storage
+const HIGH_SCORE_KEY = "stackerHighScore";
+let highScore = 0;
+
+function loadHighScore() {
+  try {
+    const saved = localStorage.getItem(HIGH_SCORE_KEY);
+    highScore = saved ? Math.max(0, parseInt(saved, 10) || 0) : 0;
+  } catch (_) {
+    highScore = 0;
+  }
+}
+function saveHighScore(value) {
+  try {
+    localStorage.setItem(HIGH_SCORE_KEY, String(Math.max(0, value | 0)));
+  } catch (_) {
+    // ignore storage errors
+  }
+}
+
 
 init();
 
@@ -36,6 +60,9 @@ function init() {
 
   // Compute responsive box size based on viewport
   setResponsiveBoxSize();
+
+  // Load high score on initial game setup
+  loadHighScore();
 
 
   function createParticleBackground(scene) {
@@ -483,6 +510,15 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
+  // Evaluate and update high score
+  const currentScore = Math.max(0, stack.length - 1);
+  if (currentScore > highScore) {
+    highScore = currentScore;
+    saveHighScore(highScore);
+  }
+  // Update end-game UI with current and high scores
+  if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
+  if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
 }
 
