@@ -8,7 +8,7 @@ let lastTime; // Last timestamp of animation
 let stack; // Parts that stay solid on top of each other
 let overhangs; // Overhanging parts that fall down
 const boxHeight = 1; // Height of each layer
-const originalBoxSize = 3; // Original width and height of a box
+let originalBoxSize = 3; // Original width and height of a box (made responsive)
 let autopilot;
 let gameEnded;
 let robotPrecision; // Determines how precise the game is on autopilot
@@ -33,6 +33,9 @@ function init() {
   stack = [];
   overhangs = [];
   setRobotPrecision();
+
+  // Compute responsive box size based on viewport
+  setResponsiveBoxSize();
 
 
   function createParticleBackground(scene) {
@@ -152,18 +155,13 @@ scene.background = createGradientBackground();
 
   // Set up renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setAnimationLoop(animation);
   document.body.appendChild(renderer.domElement);
-  
-createParticleBackground(scene);
-camera.position.z = 3;
 
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-}
-animate();
+  createParticleBackground(scene);
+  camera.position.z = 3;
 }
 
 
@@ -174,6 +172,9 @@ function startGame() {
   lastTime = 0;
   stack = [];
   overhangs = [];
+
+  // Recompute box size in case viewport changed before restarting
+  setResponsiveBoxSize();
 
   if (instructionsElement) instructionsElement.style.display = "none";
   if (resultsElement) resultsElement.style.display = "none";
@@ -206,7 +207,25 @@ function startGame() {
     camera.lookAt(0, 0, 0);
   }
 }
-// Function to create a ring effect at (x, y, z)
+
+// Compute responsive box size based on viewport dimensions
+function setResponsiveBoxSize() {
+  // Choose base scale: keep boxes readable across devices
+  const vw = Math.max(window.innerWidth, 320);
+  const vh = Math.max(window.innerHeight, 320);
+
+  // We'll base the box size on the smaller of (viewport width, viewport height)
+  // Map range: small screens -> ~1.8, medium -> ~3, large -> ~4.5
+  const minDim = Math.min(vw, vh);
+  // Keep desktop size at the original 3 units. Reduce only for smaller screens.
+  if (minDim < 420) {
+    originalBoxSize = 1.8; // very small phones
+  } else if (minDim < 768) {
+    originalBoxSize = 2.6; // small tablets / large phones
+  } else {
+    originalBoxSize = 4; // desktop and most tablets
+  }
+}
 // Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
@@ -277,9 +296,12 @@ function createParticles() {
 // Function to Animate Particles (Floating Effect)
 function animateParticles(particleData) {
   const positions = particleData.particleGeometry.attributes.position.array;
-  
+
   for (let i = 1; i < positions.length; i += 3) {
     positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.02; // Floating motion
+    // keep particles within a bound to avoid runaway values
+    if (positions[i] > 100) positions[i] = -100;
+    if (positions[i] < -100) positions[i] = 100;
   }
 
   particleData.particleGeometry.attributes.position.needsUpdate = true;
@@ -287,15 +309,6 @@ function animateParticles(particleData) {
 
 // Initialize Particles
 const particleData = createParticles();
-
-// Modify Animation Loop to Include Particles
-function animate() {
-  requestAnimationFrame(animate);
-  TWEEN.update();
-  animateParticles(particleData); // Update particle motion
-  renderer.render(scene, camera);
-}
-animate();
 
 
 
@@ -533,14 +546,27 @@ function updatePhysics(timePassed) {
 window.addEventListener("resize", () => {
   // Adjust camera
   console.log("resize", window.innerWidth, window.innerHeight);
+  // Recalculate responsive box size so new blocks follow new dimensions
+  setResponsiveBoxSize();
   const aspect = window.innerWidth / window.innerHeight;
   const width = 10;
   const height = width / aspect;
-
+  // Recompute orthographic frustum based on new aspect
+  camera.left = -width / 2;
+  camera.right = width / 2;
   camera.top = height / 2;
-  camera.bottom = height / -2;
+  camera.bottom = -height / 2;
+  camera.updateProjectionMatrix();
 
-  // Reset renderer
+  // Update renderer size and pixel ratio for crisp rendering on high DPI
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  // If particles exist, update their geometry draw range (safe no-op otherwise)
+  if (typeof particleData !== 'undefined' && particleData.particleGeometry) {
+    particleData.particleGeometry.attributes.position.needsUpdate = true;
+  }
+
+  // Re-render once to avoid a visible gap during resize
   renderer.render(scene, camera);
 });
