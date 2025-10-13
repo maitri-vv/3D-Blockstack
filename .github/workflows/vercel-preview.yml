@@ -1,0 +1,76 @@
+name: Vercel Preview Deployment
+
+env:
+  # The project and org IDs are required for Vercel CLI to link to the correct project
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+on:
+  # Trigger this workflow on every Pull Request (PR) against the main branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        # Install the Vercel CLI globally
+        run: npm install --global vercel@latest
+
+      - name: Deploy Preview to Vercel
+        id: vercel_deploy
+        run: |
+          # The --cwd ./fun-games is CRITICAL because the index.html is in that subfolder.
+          # --token is required for authentication.
+          # --prod=false ensures it's a preview deployment.
+          # The | tee deployment_url.txt pipes the output URL to a file for the next step.
+          vercel deploy ./fun-games \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --prod=false \
+            --confirm \
+            | tee deployment_url.txt
+
+      - name: Extract Deployment URL
+        id: get_url
+        # The Vercel CLI outputs the URL as the last line. This step extracts it.
+        run: echo "PREVIEW_URL=$(cat deployment_url.txt | tail -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Comment on Pull Request with Preview URL
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // This script comments the preview URL on the PR
+            const previewUrl = process.env.PREVIEW_URL;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Vercel Preview Deployment Successful!**\n\n- **Preview URL:** [Click to view](${previewUrl})\n- **Branch:** \`${context.payload.pull_request.head.ref}\`\n\nReview the changes live before merging!`,
+            })
+        env:
+          # Pass the extracted URL as an environment variable
+          PREVIEW_URL: ${{ steps.get_url.outputs.PREVIEW_URL }}
+          
+      # --------------------------------------------------------------------------------
+      # OPTIONAL: Add a Cleanup Job (highly recommended)
+      # --------------------------------------------------------------------------------
+  
+  vercel-cleanup:
+    runs-on: ubuntu-latest
+    needs: deploy-preview # Ensures cleanup runs AFTER deployment job completes
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository # Only cleanup for same-repo PRs
+    
+    steps:
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Vercel Cleanup Deployment
+        # The 'alias rm' command removes the deployment associated with the PR branch
+        run: vercel alias rm ${{ github.event.pull_request.head.ref }} --token=${{ secrets.VERCEL_TOKEN }} --yes || true
+        # The '|| true' ensures the workflow doesn't fail if the deployment is already gone
