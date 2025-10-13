@@ -14,23 +14,24 @@ on:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
-    
+    # --- FIX 1: Add Permissions for Commenting on PR ---
+    permissions:
+      contents: read
+      pull-requests: write # Grants permission to comment on the PR
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Install Vercel CLI
-        # Install the Vercel CLI globally
         run: npm install --global vercel@latest
 
       - name: Deploy Preview to Vercel
         id: vercel_deploy
         run: |
-          # The --cwd ./fun-games is CRITICAL because the index.html is in that subfolder.
-          # --token is required for authentication.
-          # --prod=false ensures it's a preview deployment.
-          # The | tee deployment_url.txt pipes the output URL to a file for the next step.
-          vercel deploy ./fun-games \
+          # --- FIX 2: Removed the incorrect "./fun-games" reference.
+          # The deployment now runs from the repository root, where index.html lives.
+          vercel deploy \
             --token=${{ secrets.VERCEL_TOKEN }} \
             --prod=false \
             --confirm \
@@ -38,7 +39,6 @@ jobs:
 
       - name: Extract Deployment URL
         id: get_url
-        # The Vercel CLI outputs the URL as the last line. This step extracts it.
         run: echo "PREVIEW_URL=$(cat deployment_url.txt | tail -n 1)" >> $GITHUB_OUTPUT
 
       - name: Comment on Pull Request with Preview URL
@@ -54,8 +54,9 @@ jobs:
               body: `🚀 **Vercel Preview Deployment Successful!**\n\n- **Preview URL:** [Click to view](${previewUrl})\n- **Branch:** \`${context.payload.pull_request.head.ref}\`\n\nReview the changes live before merging!`,
             })
         env:
-          # Pass the extracted URL as an environment variable
           PREVIEW_URL: ${{ steps.get_url.outputs.PREVIEW_URL }}
+
+  # ... vercel-cleanup job remains the same
           
       # --------------------------------------------------------------------------------
       # OPTIONAL: Add a Cleanup Job (highly recommended)
