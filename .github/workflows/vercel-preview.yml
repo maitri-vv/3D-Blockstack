@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write # Grants permission to comment on the PR
+      issues: write        # Required because PR comments use the Issues API
 
     steps:
       - name: Checkout Code
@@ -42,6 +43,8 @@ jobs:
         run: echo "PREVIEW_URL=$(cat deployment_url.txt | tail -n 1)" >> $GITHUB_OUTPUT
 
       - name: Comment on Pull Request with Preview URL
+        # Skip commenting for forked PRs to avoid 403 'Resource not accessible by integration'
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v6
         with:
           script: |
@@ -55,6 +58,12 @@ jobs:
             })
         env:
           PREVIEW_URL: ${{ steps.get_url.outputs.PREVIEW_URL }}
+
+      - name: Skipping PR comment for forked PRs
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "This PR comes from a fork (\"${{ github.event.pull_request.head.repo.full_name }}\")."
+          echo "Skipping PR comment step to avoid 403 due to restricted GITHUB_TOKEN on forked PRs."
 
   # ... vercel-cleanup job remains the same
           
