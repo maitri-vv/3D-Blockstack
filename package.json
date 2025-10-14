@@ -1,0 +1,35 @@
+{
+  "name": "3d-blockstack-game",
+  "version": "1.0.0",
+  "description": "A fun 3D block stacking game built with Three.js and Cannon.js",
+  "main": "index.html",
+  "scripts": {
+    "lint:js": "eslint script.js --max-warnings 60",
+    "lint:css": "stylelint style.css --max-warnings 10",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:fix": "eslint script.js --fix && stylelint style.css --fix"
+  },
+  "keywords": [
+    "game",
+    "3d",
+    "threejs",
+    "cannonjs",
+    "javascript",
+    "webgl"
+  ],
+  "author": "harshit-sharma2005",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^30.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshit-sharma2005/3D-Blockstack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harshit-sharma2005/3D-Blockstack/issues"
+  },
+  "homepage": "https://github.com/harshit-sharma2005/3D-Blockstack#readme"
+}
