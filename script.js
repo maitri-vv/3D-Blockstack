@@ -17,6 +17,30 @@ const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
 
+// High score UI references
+const endScoreElement = document.getElementById("end-score");
+const endHighScoreElement = document.getElementById("end-high-score");
+
+// High score storage
+const HIGH_SCORE_KEY = "stackerHighScore";
+let highScore = 0;
+
+function loadHighScore() {
+  try {
+    const saved = localStorage.getItem(HIGH_SCORE_KEY);
+    highScore = saved ? Math.max(0, parseInt(saved, 10) || 0) : 0;
+  } catch (_) {
+    highScore = 0;
+  }
+}
+function saveHighScore(value) {
+  try {
+    localStorage.setItem(HIGH_SCORE_KEY, String(Math.max(0, value | 0)));
+  } catch (_) {
+    // ignore storage errors
+  }
+}
+
 
 init();
 
@@ -37,6 +61,9 @@ function init() {
   // Compute responsive box size based on viewport
   setResponsiveBoxSize();
 
+  // Load high score on initial game setup
+  loadHighScore();
+
 
   function createParticleBackground(scene) {
     const particleCount = 500;
@@ -44,33 +71,33 @@ function init() {
     const positions = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 10; // X
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 10; // Y
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 10; // Z
+      positions[i * 3] = (Math.random() - 0.5) * 10; // X
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 10; // Y
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10; // Z
     }
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
     const particlesMaterial = new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 0.05,
-        transparent: true,
-        opacity: 0.5,
-        depthWrite: false
+      color: 0xffffff,
+      size: 0.05,
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false
     });
 
     const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
-        particleSystem.renderOrder = -1; // Ensure it renders behind game objects
+    particleSystem.renderOrder = -1; // Ensure it renders behind game objects
 
     scene.add(particleSystem);
 
     // Animation function
     function animateParticles() {
-        requestAnimationFrame(animateParticles);
-        particleSystem.rotation.y += 0.001;
+      requestAnimationFrame(animateParticles);
+      particleSystem.rotation.y += 0.001;
     }
     animateParticles();
-}
+  }
 
   // Initialize CannonJS
   world = new CANNON.World();
@@ -84,7 +111,7 @@ function init() {
   const height = width / aspect;
 
 
-  
+
   camera = new THREE.OrthographicCamera(
     width / -2, // left
     width / 2, // right
@@ -109,35 +136,35 @@ function init() {
 
   scene = new THREE.Scene();
   // Create a canvas for the gradient texture
-function createGradientBackground() {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  function createGradientBackground() {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  // Set canvas size
-  canvas.width = 512;
-  canvas.height = 512;
+    // Set canvas size
+    canvas.width = 512;
+    canvas.height = 512;
 
-  // Create a gradient (from pink to light pink beige)
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, "#ff9f43"); // Light pink
-  gradient.addColorStop(0.5, "#feca57"); // Soft pink
-  gradient.addColorStop(1, "#f8e9a1"); // Light beige
+    // Create a gradient (from pink to light pink beige)
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, "#ff9f43"); // Light pink
+    gradient.addColorStop(0.5, "#feca57"); // Soft pink
+    gradient.addColorStop(1, "#f8e9a1"); // Light beige
 
-  // Apply gradient to canvas
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Apply gradient to canvas
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Create texture from canvas
-  const texture = new THREE.CanvasTexture(canvas);
-  return texture;
-}
+    // Create texture from canvas
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
 
-// Apply gradient background to scene
-scene.background = createGradientBackground();
-/*
+  // Apply gradient background to scene
+  scene.background = createGradientBackground();
+  /*
   scene.background = new THREE.Color(0x87CEEB); // Sky blue
 */
-  
+
 
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
@@ -230,10 +257,10 @@ function setResponsiveBoxSize() {
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffd700, // Golden yellow
-      transparent: true,
-      opacity: 0.8,
-      
+    color: 0xffd700, // Golden yellow
+    transparent: true,
+    opacity: 0.8,
+
   });
 
   const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -244,15 +271,15 @@ function createRingEffect(x, y, z) {
 
   // Expand & fade out animation
   new TWEEN.Tween(ringMesh.scale)
-      .to({ x: 2, y: 2 }, 800) // Expands outward
-      .easing(TWEEN.Easing.Quadratic.Out)
-      .start();
+    .to({ x: 2, y: 2 }, 800) // Expands outward
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .start();
 
   new TWEEN.Tween(ringMaterial)
-      .to({ opacity: 0 }, 800) // Fades out
-      .easing(TWEEN.Easing.Quadratic.Out)
-      .onComplete(() => scene.remove(ringMesh)) // Remove after animation
-      .start();
+    .to({ opacity: 0 }, 800) // Fades out
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .onComplete(() => scene.remove(ringMesh)) // Remove after animation
+    .start();
 }
 
 
@@ -277,7 +304,7 @@ function createParticles() {
     positions[i + 2] = (Math.random() - 0.5) * 50; // Spread across Z-axis
   }
 
-  particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
   const particleMaterial = new THREE.PointsMaterial({
     color: 0xffd700, // Golden yellow
@@ -463,10 +490,10 @@ function splitBlockAndAddNextOneIfOverlaps() {
 
     if (scoreElement) scoreElement.innerText = `${stack.length - 1} ◆`;
     addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
-    } else {
+  } else {
     missedTheSpot();
-    }
-    
+  }
+
 }
 
 function missedTheSpot() {
@@ -483,6 +510,15 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
+  // Evaluate and update high score
+  const currentScore = Math.max(0, stack.length - 1);
+  if (currentScore > highScore) {
+    highScore = currentScore;
+    saveHighScore(highScore);
+  }
+  // Update end-game UI with current and high scores
+  if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
+  if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
 }
 
@@ -528,6 +564,7 @@ function animation(time) {
     }
 
     updatePhysics(timePassed);
+    animateParticles(particleData);
     renderer.render(scene, camera);
   }
   lastTime = time;
@@ -545,7 +582,6 @@ function updatePhysics(timePassed) {
 
 window.addEventListener("resize", () => {
   // Adjust camera
-  console.log("resize", window.innerWidth, window.innerHeight);
   // Recalculate responsive box size so new blocks follow new dimensions
   setResponsiveBoxSize();
   const aspect = window.innerWidth / window.innerHeight;
@@ -563,7 +599,7 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   // If particles exist, update their geometry draw range (safe no-op otherwise)
-  if (typeof particleData !== 'undefined' && particleData.particleGeometry) {
+  if (typeof particleData !== "undefined" && particleData.particleGeometry) {
     particleData.particleGeometry.attributes.position.needsUpdate = true;
   }
 
