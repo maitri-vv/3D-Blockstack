@@ -23,7 +23,24 @@ body {
 }
 
 #instructions { top: clamp(8px, 2.5vh, 20px); left: 50%; transform: translateX(-50%); display: block; padding: 0.6rem 1rem; background: rgb(0 0 0 / 18%); border-radius: 8px; }
-#results { top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; padding: 1rem 1.2rem; background: rgb(0 0 0 / 25%); border-radius: 10px; }
+#results{
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  display: none;
+  padding: 1rem 1.2rem; 
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+#results .content p:first-child {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ff4d4d;
+}
 #score { top: clamp(8px, 2.5vh, 20px); right: clamp(8px, 2.5vw, 20px); font-size: clamp(1rem, 3.5vw, 2rem); font-weight: bold; padding: 0.2rem 0.6rem; background: rgb(0 0 0 / 18%); border-radius: 6px; }
 
 #youtube { position: absolute; bottom: 10px; left: 10px; color: white; text-decoration: none; display: none; }
@@ -37,12 +54,52 @@ a:visited { color: inherit; }
 /* Responsive tweaks for small screens */
 @media (max-width: 600px) {
   #instructions .content p { font-size: 0.85rem; margin: 0.25rem 0; }
-  #results .content p { font-size: 0.95rem; }
   #score { font-size: 1.1rem; }
 }
 
 @media (min-width: 1200px) {
   #instructions .content p { font-size: 1.05rem; }
+}
+@media (min-width: 768px) {
+  #results .content p {
+    font-size: 1.1rem;
+  }
+}
+#reset-btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(to right, #ff7e5f, #feb47b);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+#reset-btn:hover {
+  box-shadow: 0 0 10px #feb47b;
+  transform: scale(1.05);
+}
+
+#end-score {
+  color: #00ffff;
+  font-weight: bold;
+}
+
+#end-high-score {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+#end-high-score.new-high {
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 

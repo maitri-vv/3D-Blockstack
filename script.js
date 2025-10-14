@@ -447,6 +447,9 @@ function eventHandler() {
   if (autopilot) startGame();
   else splitBlockAndAddNextOneIfOverlaps();
 }
+document.getElementById("reset-btn").addEventListener("click", () => {
+  startGame(); 
+});
 
 function splitBlockAndAddNextOneIfOverlaps() {
   if (gameEnded) return;
