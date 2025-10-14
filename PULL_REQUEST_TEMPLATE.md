@@ -21,12 +21,26 @@ Closes ### ✨ What does this change?
 |----------------|---------------|
 | [Screenshot of old state] | [Screenshot of new state] |
 
-🧪 **Testing**
 
-**Steps to Test Locally (for Reviewer):**
-1. Clone this branch locally.
-2. Open index.html in your browser.
-3. Verify the changes (e.g., if it's a bug fix, confirm the bug is gone).
-4. (If applicable) Check the console for any new errors or warnings.
+## 🔗 **Related Issue(s)**
+Link the GitHub Issue(s) this PR addresses. Use keywords like Fixes, Closes, or Resolves to automatically close the issue when the PR is merged.
+Fixes #123
 
-🔗 **Related Resources**
+Resolves #456
+
+## ✅ Checklist (Required)
+Please check all boxes that apply and ensure your PR is ready for review.
+
+[ ] I have read the project's [CONTRIBUTING.md] guidelines.
+
+[ ] My code follows the project's coding style and conventions.
+
+[ ] I have performed a self-review of my own code.
+
+[ ] My changes generate no new errors or warnings in the browser console.
+
+[ ] I have tested my changes locally on the Vercel-simulated environment (if applicable).
+
+[ ] For UI changes, I have tested on different screen sizes (responsive design check).
+
+[ ] My commit message(s) are clear and descriptive.
