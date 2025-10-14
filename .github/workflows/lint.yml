@@ -18,12 +18,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+        # Note: caching disabled because no lockfile is committed. Re-enable if package-lock.json exists.
         
     - name: Install dependencies
       run: |
-        npm ci
+        npm install --no-audit --no-fund
         
     - name: Lint JavaScript files (Check for critical errors)
       run: |
