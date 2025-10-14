@@ -18,74 +18,17 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
         
-    - name: Cache node modules
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-          
-    - name: Install linting dependencies
+    - name: Install dependencies
       run: |
-        npm init -y
-        npm install --no-save eslint@latest stylelint@latest stylelint-config-standard@latest
-        
-    - name: Create ESLint config
-      run: |
-        cat > .eslintrc.js << 'EOF'
-        module.exports = {
-          env: {
-            browser: true,
-            es2021: true
-          },
-          extends: [
-            'eslint:recommended'
-          ],
-          parserOptions: {
-            ecmaVersion: 'latest',
-            sourceType: 'script'
-          },
-          rules: {
-            'no-unused-vars': 'error',
-            'no-undef': 'error',
-            'no-console': 'warn',
-            'semi': ['error', 'always'],
-            'quotes': ['warn', 'double'],
-            'indent': ['warn', 2],
-            'no-trailing-spaces': 'warn',
-            'eol-last': 'warn'
-          },
-          globals: {
-            'THREE': 'readonly',
-            'CANNON': 'readonly',
-            'TWEEN': 'readonly'
-          }
-        };
-        EOF
-        
-    - name: Create Stylelint config
-      run: |
-        cat > .stylelintrc.json << 'EOF'
-        {
-          "extends": ["stylelint-config-standard"],
-          "rules": {
-            "no-duplicate-selectors": true,
-            "selector-attribute-quotes": "always",
-            "function-url-quotes": "always",
-            "comment-whitespace-inside": "always",
-            "rule-empty-line-before": "always-multi-line",
-            "selector-pseudo-element-colon-notation": "double",
-            "selector-pseudo-class-parentheses-space-inside": "never"
-          }
-        }
-        EOF
+        npm ci
         
     - name: Lint JavaScript files (Check for critical errors)
       run: |
         echo "🔍 Linting JavaScript files..."
-        npx eslint script.js --format=stylish --max-warnings 60 || {
+        npm run --silent lint:js || {
           echo "❌ JavaScript linting failed with critical errors!"
           echo "Please fix the errors marked as 'error' in the output above."
           exit 1
@@ -94,7 +37,7 @@ jobs:
     - name: Lint CSS files (Check for critical errors)
       run: |
         echo "🎨 Linting CSS files..."
-        npx stylelint style.css --formatter=string --max-warnings 10 || {
+        npm run --silent lint:css || {
           echo "❌ CSS linting failed with critical errors!"
           echo "Please fix the errors in the CSS file."
           exit 1

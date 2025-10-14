@@ -1,8 +1,23 @@
 {
   "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-stylistic"],
   "rules": {
     "no-duplicate-selectors": true,
     "selector-attribute-quotes": "always",
-    "function-url-quotes": "always"
+    "function-url-quotes": "always",
+    "comment-whitespace-inside": "always",
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    "stylistic/no-eol-whitespace": true,
+    "stylistic/indentation": 2,
+    "stylistic/string-quotes": "double",
+    "stylistic/color-hex-case": "lower",
+    "color-hex-length": "short",
+    "selector-pseudo-element-colon-notation": "double"
   }
 }

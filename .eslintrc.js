@@ -16,9 +16,11 @@ module.exports = {
     'no-console': 'warn',
     'semi': ['error', 'always'],
     'quotes': ['warn', 'double'],
-    'indent': ['warn', 2],
+    'indent': ['warn', 2, { SwitchCase: 1 }],
     'no-trailing-spaces': 'warn',
-    'eol-last': 'warn'
+    'eol-last': 'warn',
+    'no-mixed-spaces-and-tabs': 'error',
+    'space-before-blocks': ['warn', 'always']
   },
   globals: {
     'THREE': 'readonly',
