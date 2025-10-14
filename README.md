@@ -74,3 +74,54 @@ run game
 # Method 3: Local server (optional, for development)
 npx serve .  # Then visit http://localhost:3000
 
+
+🌐 Browser Support
+✅ Chrome 80+ (recommended)
+✅ Firefox 75+
+✅ Safari 13+
+✅ Edge 80+
+✅ Mobile browsers with WebGL support
+🤝 Contributing
+We welcome contributions! Here's how to get started:
+
+Fork the repository
+Clone your fork: git clone https://github.com/YOUR_USERNAME/3D-Blockstack.git
+Create a feature branch: git checkout -b feature/amazing-feature
+Make your changes and ensure they follow our code style
+Test your changes: npm run lint
+Commit with clear messages: git commit -m "Add amazing feature"
+Push to your fork: git push origin feature/amazing-feature
+Create a Pull Request
+Code Quality Requirements
+✅ All linting checks must pass (npm run lint)
+✅ Follow existing code style and patterns
+✅ Test on multiple devices/browsers
+✅ Update documentation if needed
+For detailed guidelines, see LINTING.md.
+
+🐛 Troubleshooting
+Common Issues
+Black screen: Ensure WebGL is enabled in your browser
+Poor performance: Try closing other browser tabs or updating GPU drivers
+Touch not working: Ensure you're using a modern mobile browser
+Blocks not falling: Check browser console for JavaScript errors
+Getting Help
+🐛 Report bugs
+💬 Ask questions
+✨ Request features
+📈 Roadmap
+<input disabled="" type="checkbox"> 🎵 Sound effects and background music
+<input disabled="" type="checkbox"> 🏆 Online leaderboard system
+<input disabled="" type="checkbox"> 🎨 Multiple themes and color schemes
+<input disabled="" type="checkbox"> 🎯 Achievement system
+<input disabled="" type="checkbox"> 👥 Multiplayer mode
+<input disabled="" type="checkbox"> 📱 Progressive Web App (PWA) features
+📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+🙏 Acknowledgments
+Three.js Community - For the amazing 3D graphics library
+Cannon.js Team - For the physics engine
+TWEEN.js - For smooth animation capabilities
+Contributors - Everyone who helps improve this project
+Players - Thanks for playing and providing feedback!
