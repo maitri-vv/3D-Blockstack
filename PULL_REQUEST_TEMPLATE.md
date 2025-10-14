@@ -22,7 +22,7 @@ Closes ### ✨ What does this change?
 | [Screenshot of old state] | [Screenshot of new state] |
 
 
-## 🔗 **Related Issue(s)**
+## 🔗 **Related  Issue(s)**
 Link the GitHub Issue(s) this PR addresses. Use keywords like Fixes, Closes, or Resolves to automatically close the issue when the PR is merged.
 Fixes #123
 
