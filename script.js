@@ -428,7 +428,15 @@ window.addEventListener("touchstart", function (event) {
 
 //original code
 window.addEventListener("mousedown", eventHandler);
-window.addEventListener("touchstart", eventHandler);
+window.addEventListener("touchstart", function (event) {
+  if (!autopilot && !gameEnded) {
+    eventHandler(); // Normal gameplay tap
+  } else if (gameEnded) {
+    gameEnded = false; // Reset the game state properly
+    startGame(); // Restart game on tap if it's over
+    event.preventDefault();
+  }
+});
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
