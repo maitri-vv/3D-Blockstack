@@ -255,11 +255,11 @@ function setResponsiveBoxSize() {
 }
 // Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
-  const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
+  const ringGeometry = new THREE.RingGeometry(1.2, 1.5, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
     color: 0xffd700, // Golden yellow
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.6,
 
   });
 
