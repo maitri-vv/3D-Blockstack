@@ -1,3 +1,5 @@
+
+
 window.focus(); // Capture keys right away (by default focus is on editor)
 
 let camera, scene, renderer; // ThreeJS globals
@@ -11,7 +13,7 @@ let autopilot;
 let gameEnded;
 let robotPrecision; // Determines how precise the game is on autopilot
 let backgroundParticleSystem; // Store reference to background particles
-
+let isTouchHandling = false; // Prevent multiple rapid touch events
 
 const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
@@ -195,7 +197,7 @@ function startGame() {
   lastTime = 0;
   stack = [];
   overhangs = [];
-
+  isTouchHandling = false; // Reset touch handling flag
 
   // Recompute box size in case viewport changed before restarting
   setResponsiveBoxSize();
@@ -231,13 +233,13 @@ function startGame() {
     camera.lookAt(0, 0, 0);
   }
 
-
-
-
-
-
-
-
+  // IMPORTANT: Extend the touch lock after game starts
+  // This prevents immediate touch events from placing blocks
+  // before the player can see the game state
+  isTouchHandling = true;
+  setTimeout(() => {
+    isTouchHandling = false;
+  }, 500); // Give player 500ms to see the game before accepting touches
 }
 
 // Compute responsive box size based on viewport dimensions
@@ -479,50 +481,50 @@ window.addEventListener("touchstart", function (event) {
 */
 
 //original code
-window.addEventListener("mousedown", eventHandler);
-window.addEventListener("touchstart", function (event) {
-  if (gameEnded) {
-    event.preventDefault();
-    startGame();
-  } else {
-    eventHandler();
+// Input handling: avoid duplicate events on touch devices
+const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+function handlePointerInput(evt) {
+  // evt may be used for future analytics; keep it to avoid unused param lint
+  if (evt && evt.type) {
+    /* no-op: event type logged conditionally during debugging */
   }
-});
 
+  // Prevent multiple rapid events
+  if (isTouchHandling) return;
+  isTouchHandling = true;
 
+  const wasAutopilot = autopilot;
+  eventHandler();
 
+  const debounceTime = wasAutopilot ? 800 : 300;
+  setTimeout(() => {
+    isTouchHandling = false;
+  }, debounceTime);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if (isTouchDevice) {
+  // On touch devices only attach touchstart to avoid duplicated mouse events
+  window.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    handlePointerInput(e);
+  }, { passive: false });
+  // Some devices implement pointer events; also listen to pointerdown (ignore mouse pointers)
+  if (window.PointerEvent) {
+    window.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      handlePointerInput(e);
+    });
+  }
+} else {
+  // Non-touch devices: use mouse and pointer events
+  window.addEventListener("mousedown", handlePointerInput);
+  if (window.PointerEvent) {
+    window.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || e.pointerType === "pen") handlePointerInput(e);
+    });
+  }
+}
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
@@ -545,19 +547,19 @@ function eventHandler() {
 function splitBlockAndAddNextOneIfOverlaps() {
   if (gameEnded) return;
 
-
-
-
-
+  // Safety check - make sure we have enough layers
+  if (!stack || stack.length < 2) {
+    return;
+  }
 
   const topLayer = stack[stack.length - 1];
   const previousLayer = stack[stack.length - 2];
 
-
-
-
-
-
+  // Additional safety checks
+  if (!topLayer || !previousLayer) {
+    // console.warn("Missing layer data");
+    return;
+  }
 
   const direction = topLayer.direction;
 
