@@ -408,16 +408,36 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.addShape(shape);
 }
 
+
+// Event listeners for mouse, touch, and keyboard
+
+
+
 // Event listeners for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
+
+window.addEventListener("keydown", function (event) {
+  if (event.key == " ") {
+    event.preventDefault();
+    eventHandler();
+    return;
+  }
+  if (event.key == "R" || event.key == "r") {
+    event.preventDefault();
+    startGame();
+    return;
+  }
+});
+
 
 // Fixed touch handler for mobile: restart game when tapped after game over
 window.addEventListener("touchstart", function (event) {
   event.preventDefault(); // Prevent double-firing and unwanted scrolling
 
+
   if (gameEnded) {
     // If game is over, restart on tap
-    gameEnded = false;
+    
     startGame();
   } else {
     // During gameplay, handle normal touch
@@ -433,10 +453,16 @@ window.addEventListener("keydown", function (event) {
   }
   if (event.key == "R" || event.key == "r") {
     event.preventDefault();
+
+
+  if (gameEnded) {
+    // If game is over, restart on tap
     startGame();
-    return;
+  } else {
+    // During gameplay, handle normal touch
+    eventHandler();
   }
-});
+}, { passive: false });
 
 function eventHandler() {
   if (autopilot) startGame();
