@@ -426,17 +426,24 @@ window.addEventListener("touchstart", function (event) {
 
 */
 
-//original code
+// Event handlers for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
+
+// Mobile-optimized touch handler
 window.addEventListener("touchstart", function (event) {
-  if (!autopilot && !gameEnded) {
-    eventHandler(); // Normal gameplay tap
-  } else if (gameEnded) {
-    gameEnded = false; // Reset the game state properly
-    startGame(); // Restart game on tap if it's over
-    event.preventDefault();
+  event.preventDefault(); // Prevent double-firing and unwanted scrolling
+  
+  if (gameEnded) {
+    // If game is over, restart on tap
+    gameEnded = false;
+    startGame();
+  } else if (!autopilot) {
+    // During gameplay, handle normal touch
+    eventHandler();
   }
-});
+}, { passive: false });
+
+// Keyboard controls
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
