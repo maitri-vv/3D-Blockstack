@@ -1,0 +1,25 @@
+{
+  "name": "3d-blockstack",
+  "version": "1.0.0",
+  "description": "Here u go make changes here Here u go",
+  "main": "script.js",
+  "scripts": {
+    "format:check": "prettier --check '**/*.{js,css}'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maitri-vv/3D-Blockstack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/maitri-vv/3D-Blockstack/issues"
+  },
+  "homepage": "https://github.com/maitri-vv/3D-Blockstack#readme",
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
