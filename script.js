@@ -1,5 +1,3 @@
-
-
 window.focus(); // Capture keys right away (by default focus is on editor)
 
 let camera, scene, renderer; // ThreeJS globals
@@ -20,10 +18,31 @@ const resultsElement = document.getElementById("results");
 // High score UI references
 const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
+const restartTextElement = document.getElementById("restart-text");
 
 // High score storage
 const HIGH_SCORE_KEY = "stackerHighScore";
 let highScore = 0;
+
+// Detect if user is on a touch device
+function isTouchDevice() {
+  return (
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
+}
+
+// Update restart message based on device type
+function updateRestartMessage() {
+  if (restartTextElement) {
+    if (isTouchDevice()) {
+      restartTextElement.innerHTML = "Tap anywhere to restart";
+    } else {
+      restartTextElement.innerHTML = 'Press <kbd>R</kbd> to restart';
+    }
+  }
+}
 
 function loadHighScore() {
   try {
@@ -398,9 +417,9 @@ function cutBox(topLayer, overlap, size, delta) {
 }
 
 
-/*
-
+// Event listeners for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
+
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
@@ -414,33 +433,18 @@ window.addEventListener("keydown", function (event) {
   }
 });
 
+// Fixed touch handler for mobile: restart game when tapped after game over
 window.addEventListener("touchstart", function (event) {
-  if (!autopilot && !gameEnded) {
-    eventHandler(); // Normal gameplay tap
-  } else if (gameEnded) {
-    gameEnded = false; // Reset the game state properly
-    startGame(); // Restart game on tap if it's over
-    event.preventDefault();
-  }
-});
+  event.preventDefault(); // Prevent double-firing and unwanted scrolling
 
-*/
-
-//original code
-window.addEventListener("mousedown", eventHandler);
-window.addEventListener("touchstart", eventHandler);
-window.addEventListener("keydown", function (event) {
-  if (event.key == " ") {
-    event.preventDefault();
-    eventHandler();
-    return;
-  }
-  if (event.key == "R" || event.key == "r") {
-    event.preventDefault();
+  if (gameEnded) {
+    // If game is over, restart on tap
     startGame();
-    return;
+  } else {
+    // During gameplay, handle normal touch
+    eventHandler();
   }
-});
+}, { passive: false });
 
 
 function eventHandler() {
@@ -519,6 +523,10 @@ function missedTheSpot() {
   // Update end-game UI with current and high scores
   if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
   if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
+
+  // Update restart message based on device type
+  updateRestartMessage();
+
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
 }
 
@@ -537,8 +545,8 @@ function animation(time) {
       (!autopilot ||
         (autopilot &&
           topLayer.threejs.position[topLayer.direction] <
-            previousLayer.threejs.position[topLayer.direction] +
-              robotPrecision));
+          previousLayer.threejs.position[topLayer.direction] +
+          robotPrecision));
 
     if (boxShouldMove) {
       // Keep the position visible on UI and the position in the model in sync
