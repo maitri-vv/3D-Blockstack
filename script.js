@@ -1,5 +1,3 @@
-
-
 window.focus(); // Capture keys right away (by default focus is on editor)
 
 let camera, scene, renderer; // ThreeJS globals
@@ -13,6 +11,9 @@ let autopilot;
 let gameEnded;
 let robotPrecision; // Determines how precise the game is on autopilot
 
+// Particle data will be initialised after scene is created
+let particleData;
+
 const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
@@ -20,10 +21,31 @@ const resultsElement = document.getElementById("results");
 // High score UI references
 const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
+const restartTextElement = document.getElementById("restart-text");
 
 // High score storage
 const HIGH_SCORE_KEY = "stackerHighScore";
 let highScore = 0;
+
+// Detect if user is on a touch device
+function isTouchDevice() {
+  return (
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
+}
+
+// Update restart message based on device type
+function updateRestartMessage() {
+  if (restartTextElement) {
+    if (isTouchDevice()) {
+      restartTextElement.innerHTML = "Tap anywhere to restart";
+    } else {
+      restartTextElement.innerHTML = 'Press <kbd>R</kbd> to restart';
+    }
+  }
+}
 
 function loadHighScore() {
   try {
@@ -41,14 +63,12 @@ function saveHighScore(value) {
   }
 }
 
-
 init();
 
 // Determines how precise the game is on autopilot
 function setRobotPrecision() {
-  robotPrecision = Math.random() * 1 - 0.5;
+  robotPrecision = Math.random() - 0.5; // range [-0.5, 0.5)
 }
-
 
 function init() {
   autopilot = true;
@@ -63,7 +83,6 @@ function init() {
 
   // Load high score on initial game setup
   loadHighScore();
-
 
   function createParticleBackground(scene) {
     const particleCount = 500;
@@ -109,8 +128,6 @@ function init() {
   const aspect = window.innerWidth / window.innerHeight;
   const width = 10;
   const height = width / aspect;
-
-
 
   camera = new THREE.OrthographicCamera(
     width / -2, // left
@@ -163,8 +180,7 @@ function init() {
   scene.background = createGradientBackground();
   /*
   scene.background = new THREE.Color(0x87CEEB); // Sky blue
-*/
-
+  */
 
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
@@ -187,11 +203,13 @@ function init() {
   renderer.setAnimationLoop(animation);
   document.body.appendChild(renderer.domElement);
 
+  // particle background + particle system (floating)
   createParticleBackground(scene);
+  // createParticles uses 'scene', so initialise after scene exists
+  particleData = createParticles();
+
   camera.position.z = 3;
 }
-
-
 
 function startGame() {
   autopilot = false;
@@ -260,7 +278,6 @@ function createRingEffect(x, y, z) {
     color: 0xffd700, // Golden yellow
     transparent: true,
     opacity: 0.6,
-
   });
 
   const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -281,8 +298,6 @@ function createRingEffect(x, y, z) {
     .onComplete(() => scene.remove(ringMesh)) // Remove after animation
     .start();
 }
-
-
 
 function addLayer(x, z, width, depth, direction) {
   const y = boxHeight * stack.length; // Add the new box one layer higher
@@ -321,8 +336,9 @@ function createParticles() {
 }
 
 // Function to Animate Particles (Floating Effect)
-function animateParticles(particleData) {
-  const positions = particleData.particleGeometry.attributes.position.array;
+function animateParticles(particleDataParam) {
+  if (!particleDataParam || !particleDataParam.particleGeometry) return;
+  const positions = particleDataParam.particleGeometry.attributes.position.array;
 
   for (let i = 1; i < positions.length; i += 3) {
     positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.02; // Floating motion
@@ -331,13 +347,8 @@ function animateParticles(particleData) {
     if (positions[i] < -100) positions[i] = 100;
   }
 
-  particleData.particleGeometry.attributes.position.needsUpdate = true;
+  particleDataParam.particleGeometry.attributes.position.needsUpdate = true;
 }
-
-// Initialize Particles
-const particleData = createParticles();
-
-
 
 function addOverhang(x, z, width, depth) {
   const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
@@ -397,53 +408,23 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.addShape(shape);
 }
 
-
-/*
-
-window.addEventListener("mousedown", eventHandler);
-window.addEventListener("keydown", function (event) {
-  if (event.key == " ") {
-    event.preventDefault();
-    eventHandler();
-    return;
-  }
-  if (event.key == "R" || event.key == "r") {
-    event.preventDefault();
-    startGame();
-    return;
-  }
-});
-
-window.addEventListener("touchstart", function (event) {
-  if (!autopilot && !gameEnded) {
-    eventHandler(); // Normal gameplay tap
-  } else if (gameEnded) {
-    gameEnded = false; // Reset the game state properly
-    startGame(); // Restart game on tap if it's over
-    event.preventDefault();
-  }
-});
-
-*/
-
-// Event handlers for mouse, touch, and keyboard
+// Event listeners for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
 
-// Mobile-optimized touch handler
+// Fixed touch handler for mobile: restart game when tapped after game over
 window.addEventListener("touchstart", function (event) {
   event.preventDefault(); // Prevent double-firing and unwanted scrolling
-  
+
   if (gameEnded) {
     // If game is over, restart on tap
     gameEnded = false;
     startGame();
-  } else if (!autopilot) {
+  } else {
     // During gameplay, handle normal touch
     eventHandler();
   }
 }, { passive: false });
 
-// Keyboard controls
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
@@ -456,7 +437,6 @@ window.addEventListener("keydown", function (event) {
     return;
   }
 });
-
 
 function eventHandler() {
   if (autopilot) startGame();
@@ -508,7 +488,6 @@ function splitBlockAndAddNextOneIfOverlaps() {
   } else {
     missedTheSpot();
   }
-
 }
 
 function missedTheSpot() {
@@ -534,6 +513,10 @@ function missedTheSpot() {
   // Update end-game UI with current and high scores
   if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
   if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
+
+  // Update restart message based on device type
+  updateRestartMessage();
+
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
 }
 
@@ -552,8 +535,8 @@ function animation(time) {
       (!autopilot ||
         (autopilot &&
           topLayer.threejs.position[topLayer.direction] <
-            previousLayer.threejs.position[topLayer.direction] +
-              robotPrecision));
+          previousLayer.threejs.position[topLayer.direction] +
+          robotPrecision));
 
     if (boxShouldMove) {
       // Keep the position visible on UI and the position in the model in sync
