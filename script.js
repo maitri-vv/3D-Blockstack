@@ -12,6 +12,7 @@ let originalBoxSize = 3; // Original width and height of a box (made responsive)
 let autopilot;
 let gameEnded;
 let robotPrecision; // Determines how precise the game is on autopilot
+let backgroundParticleSystem; // Store reference to background particles
 
 const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
@@ -91,12 +92,8 @@ function init() {
 
     scene.add(particleSystem);
 
-    // Animation function
-    function animateParticles() {
-      requestAnimationFrame(animateParticles);
-      particleSystem.rotation.y += 0.001;
-    }
-    animateParticles();
+    // Rotate particles in main animation loop instead of separate requestAnimationFrame
+    return particleSystem;
   }
 
   // Initialize CannonJS
@@ -187,7 +184,7 @@ function init() {
   renderer.setAnimationLoop(animation);
   document.body.appendChild(renderer.domElement);
 
-  createParticleBackground(scene);
+  backgroundParticleSystem = createParticleBackground(scene);
   camera.position.z = 3;
 }
 
@@ -280,6 +277,53 @@ function createRingEffect(x, y, z) {
     .easing(TWEEN.Easing.Quadratic.Out)
     .onComplete(() => scene.remove(ringMesh)) // Remove after animation
     .start();
+}
+
+// Function to create perfect placement effect
+function createPerfectPlacementEffect(x, y, z) {
+  // Create burst of particles
+  const burstCount = 12;
+  for (let i = 0; i < burstCount; i++) {
+    const angle = (i / burstCount) * Math.PI * 2;
+    const distance = 1.5;
+    const particleGeo = new THREE.SphereGeometry(0.1, 8, 8);
+    const particleMat = new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      transparent: true,
+      opacity: 1
+    });
+    const particle = new THREE.Mesh(particleGeo, particleMat);
+    particle.position.set(x, y + 0.5, z);
+    scene.add(particle);
+
+    // Animate particle outward
+    new TWEEN.Tween(particle.position)
+      .to({
+        x: x + Math.cos(angle) * distance,
+        y: y + 1.5,
+        z: z + Math.sin(angle) * distance
+      }, 600)
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .start();
+
+    new TWEEN.Tween(particleMat)
+      .to({ opacity: 0 }, 600)
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .onComplete(() => scene.remove(particle))
+      .start();
+  }
+
+  // Flash the block briefly
+  const topLayer = stack[stack.length - 1];
+  if (topLayer && topLayer.threejs) {
+    const originalColor = topLayer.threejs.material.color.clone();
+    topLayer.threejs.material.color.setHex(0x00ff00);
+    setTimeout(() => {
+      if (topLayer.threejs && topLayer.threejs.material) {
+        topLayer.threejs.material.color.copy(originalColor);
+      }
+    }, 200);
+  }
 }
 
 
@@ -428,14 +472,21 @@ window.addEventListener("touchstart", function (event) {
 
 //original code
 window.addEventListener("mousedown", eventHandler);
-window.addEventListener("touchstart", eventHandler);
+window.addEventListener("touchstart", function (event) {
+  if (gameEnded) {
+    event.preventDefault();
+    startGame();
+  } else {
+    eventHandler();
+  }
+});
 window.addEventListener("keydown", function (event) {
   if (event.key == " ") {
     event.preventDefault();
     eventHandler();
     return;
   }
-  if (event.key == "R" || event.key == "r") {
+  if (event.key == "R" || event.key == "r" || event.key == "Enter") {
     event.preventDefault();
     startGame();
     return;
@@ -465,6 +516,17 @@ function splitBlockAndAddNextOneIfOverlaps() {
 
   if (overlap > 0) {
     cutBox(topLayer, overlap, size, delta);
+
+    // Check for perfect placement (within 2% tolerance)
+    const perfectThreshold = size * 0.02;
+    const isPerfect = overhangSize < perfectThreshold;
+
+    if (isPerfect) {
+      // Create perfect placement effect
+      createPerfectPlacementEffect(topLayer.threejs.position.x,
+        topLayer.threejs.position.y,
+        topLayer.threejs.position.z);
+    }
 
     // Overhang
     const overhangShift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
@@ -516,7 +578,7 @@ function missedTheSpot() {
     highScore = currentScore;
     saveHighScore(highScore);
   }
-  // Update end-game UI with current and high scores
+  // Update end-game UI with current and high scores (original verbose format)
   if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
   if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
@@ -565,6 +627,10 @@ function animation(time) {
 
     updatePhysics(timePassed);
     animateParticles(particleData);
+    // Animate background particles
+    if (backgroundParticleSystem) {
+      backgroundParticleSystem.rotation.y += 0.001;
+    }
     renderer.render(scene, camera);
   }
   lastTime = time;
