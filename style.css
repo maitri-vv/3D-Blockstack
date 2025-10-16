@@ -21,7 +21,6 @@ body {
 
 /* UI Elements */
 #instructions,
-#results,
 #score,
 #youtube-card {
   position: absolute;
@@ -29,6 +28,17 @@ body {
   color: white;
   text-align: center;
   user-select: none;
+}
+
+#results {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: fit-content;
+  height: auto;
+  max-width: 90vw;
+  padding: 0;
+  /* rest of your styles */
 }
 
 #instructions {
