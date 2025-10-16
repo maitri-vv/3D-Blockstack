@@ -39,7 +39,7 @@ function updateRestartMessage() {
     if (isTouchDevice()) {
       restartTextElement.innerHTML = "Tap anywhere to restart";
     } else {
-      restartTextElement.innerHTML = 'Press <kbd>R</kbd> to restart';
+      restartTextElement.innerHTML = "Press <kbd>R</kbd> to restart";
     }
   }
 }
@@ -60,14 +60,12 @@ function saveHighScore(value) {
   }
 }
 
-
 init();
 
 // Determines how precise the game is on autopilot
 function setRobotPrecision() {
   robotPrecision = Math.random() * 1 - 0.5;
 }
-
 
 function init() {
   autopilot = true;
@@ -83,7 +81,6 @@ function init() {
   // Load high score on initial game setup
   loadHighScore();
 
-
   function createParticleBackground(scene) {
     const particleCount = 500;
     const particlesGeometry = new THREE.BufferGeometry();
@@ -95,17 +92,23 @@ function init() {
       positions[i * 3 + 2] = (Math.random() - 0.5) * 10; // Z
     }
 
-    particlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
 
     const particlesMaterial = new THREE.PointsMaterial({
       color: 0xffffff,
       size: 0.05,
       transparent: true,
       opacity: 0.5,
-      depthWrite: false
+      depthWrite: false,
     });
 
-    const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+    const particleSystem = new THREE.Points(
+      particlesGeometry,
+      particlesMaterial
+    );
     particleSystem.renderOrder = -1; // Ensure it renders behind game objects
 
     scene.add(particleSystem);
@@ -128,8 +131,6 @@ function init() {
   const aspect = window.innerWidth / window.innerHeight;
   const width = 10;
   const height = width / aspect;
-
-
 
   camera = new THREE.OrthographicCamera(
     width / -2, // left
@@ -184,7 +185,6 @@ function init() {
   scene.background = new THREE.Color(0x87CEEB); // Sky blue
 */
 
-
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
 
@@ -209,8 +209,6 @@ function init() {
   createParticleBackground(scene);
   camera.position.z = 3;
 }
-
-
 
 function startGame() {
   autopilot = false;
@@ -279,7 +277,6 @@ function createRingEffect(x, y, z) {
     color: 0xffd700, // Golden yellow
     transparent: true,
     opacity: 0.8,
-
   });
 
   const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -301,8 +298,6 @@ function createRingEffect(x, y, z) {
     .start();
 }
 
-
-
 function addLayer(x, z, width, depth, direction) {
   const y = boxHeight * stack.length; // Add the new box one layer higher
   const layer = generateBox(x, y, z, width, depth, false);
@@ -323,14 +318,17 @@ function createParticles() {
     positions[i + 2] = (Math.random() - 0.5) * 50; // Spread across Z-axis
   }
 
-  particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  particleGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
 
   const particleMaterial = new THREE.PointsMaterial({
     color: 0xffd700, // Golden yellow
     size: 0.5, // Particle size
     transparent: true,
     opacity: 0.8,
-    depthWrite: false
+    depthWrite: false,
   });
 
   const particles = new THREE.Points(particleGeometry, particleMaterial);
@@ -355,8 +353,6 @@ function animateParticles(particleData) {
 
 // Initialize Particles
 const particleData = createParticles();
-
-
 
 function addOverhang(x, z, width, depth) {
   const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
@@ -388,7 +384,7 @@ function generateBox(x, y, z, width, depth, falls) {
     threejs: mesh,
     cannonjs: body,
     width,
-    depth
+    depth,
   };
 }
 
@@ -416,7 +412,6 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.addShape(shape);
 }
 
-
 // Event listeners for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
 
@@ -434,18 +429,21 @@ window.addEventListener("keydown", function (event) {
 });
 
 // Fixed touch handler for mobile: restart game when tapped after game over
-window.addEventListener("touchstart", function (event) {
-  event.preventDefault(); // Prevent double-firing and unwanted scrolling
+window.addEventListener(
+  "touchstart",
+  function (event) {
+    event.preventDefault(); // Prevent double-firing and unwanted scrolling
 
-  if (gameEnded) {
-    // If game is over, restart on tap
-    startGame();
-  } else {
-    // During gameplay, handle normal touch
-    eventHandler();
-  }
-}, { passive: false });
-
+    if (gameEnded) {
+      // If game is over, restart on tap
+      startGame();
+    } else {
+      // During gameplay, handle normal touch
+      eventHandler();
+    }
+  },
+  { passive: false }
+);
 
 function eventHandler() {
   if (autopilot) startGame();
@@ -497,7 +495,6 @@ function splitBlockAndAddNextOneIfOverlaps() {
   } else {
     missedTheSpot();
   }
-
 }
 
 function missedTheSpot() {
@@ -545,8 +542,8 @@ function animation(time) {
       (!autopilot ||
         (autopilot &&
           topLayer.threejs.position[topLayer.direction] <
-          previousLayer.threejs.position[topLayer.direction] +
-          robotPrecision));
+            previousLayer.threejs.position[topLayer.direction] +
+              robotPrecision));
 
     if (boxShouldMove) {
       // Keep the position visible on UI and the position in the model in sync
@@ -614,3 +611,130 @@ window.addEventListener("resize", () => {
   // Re-render once to avoid a visible gap during resize
   renderer.render(scene, camera);
 });
+
+// --- SOUND EFFECTS --- //
+const sounds = {
+  place: new Audio("sounds/put.bg.mp3"),
+  fail: new Audio("sounds/fall.bg.mp3"),
+  bgm: new Audio("sounds/bg.mp3.mp3"),
+};
+
+sounds.bgm.volume = 0.2;
+sounds.bgm.loop = true;
+
+// Loop the background music quietly
+sounds.bgm.volume = 0.2;
+sounds.bgm.loop = true;
+
+// --- 🎵 SOUND SYSTEM INTEGRATION --- //
+
+// Start background music when the user interacts for the first time
+function enableBackgroundMusic() {
+  sounds.bgm.play().catch(() => {
+    console.log(
+      "User interaction required to play sound (mobile/browser autoplay policy)"
+    );
+  });
+}
+
+// Mute / Unmute functionality (optional)
+const muteBtn = document.createElement("button");
+muteBtn.id = "muteBtn";
+muteBtn.textContent = "🔊";
+muteBtn.style.position = "absolute";
+muteBtn.style.top = "20px";
+muteBtn.style.left = "20px";
+muteBtn.style.background = "rgba(255, 255, 255, 0.7)";
+muteBtn.style.border = "none";
+muteBtn.style.borderRadius = "8px";
+muteBtn.style.fontSize = "20px";
+muteBtn.style.padding = "5px 10px";
+muteBtn.style.cursor = "pointer";
+muteBtn.style.zIndex = "1000";
+document.body.appendChild(muteBtn);
+
+let muted = false;
+muteBtn.addEventListener("click", () => {
+  muted = !muted;
+  Object.values(sounds).forEach((s) => (s.muted = muted));
+  muteBtn.textContent = muted ? "🔇" : "🔊";
+});
+
+// Play the "place" sound when a block is successfully stacked
+function playPlaceSound() {
+  if (muted) return;
+  sounds.place.currentTime = 0;
+  sounds.place.play().catch(() => {});
+}
+
+// Play the "fail" sound when the block misses completely
+function playFailSound() {
+  if (muted) return;
+  sounds.fail.currentTime = 0;
+  sounds.fail.play().catch(() => {});
+}
+
+// Start the background music on first user input
+window.addEventListener("mousedown", enableBackgroundMusic, { once: true });
+window.addEventListener("touchstart", enableBackgroundMusic, { once: true });
+window.addEventListener("keydown", enableBackgroundMusic, { once: true });
+
+// --- ⬇️ Hook sounds into gameplay events --- //
+
+// In `splitBlockAndAddNextOneIfOverlaps()`, after a successful cut
+// (insert right after: addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);)
+function splitBlockAndAddNextOneIfOverlaps() {
+  if (gameEnded) return;
+
+  const topLayer = stack[stack.length - 1];
+  const previousLayer = stack[stack.length - 2];
+  const direction = topLayer.direction;
+
+  const size = direction == "x" ? topLayer.width : topLayer.depth;
+  const delta =
+    topLayer.threejs.position[direction] -
+    previousLayer.threejs.position[direction];
+  const overhangSize = Math.abs(delta);
+  const overlap = size - overhangSize;
+
+  if (overlap > 0) {
+    cutBox(topLayer, overlap, size, delta);
+
+    // Overhang
+    const overhangShift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
+    const overhangX =
+      direction == "x"
+        ? topLayer.threejs.position.x + overhangShift
+        : topLayer.threejs.position.x;
+    const overhangZ =
+      direction == "z"
+        ? topLayer.threejs.position.z + overhangShift
+        : topLayer.threejs.position.z;
+    const overhangWidth = direction == "x" ? overhangSize : topLayer.width;
+    const overhangDepth = direction == "z" ? overhangSize : topLayer.depth;
+
+    addOverhang(overhangX, overhangZ, overhangWidth, overhangDepth);
+
+    // Next layer
+    const nextX = direction == "x" ? topLayer.threejs.position.x : -10;
+    const nextZ = direction == "z" ? topLayer.threejs.position.z : -10;
+    const newWidth = topLayer.width;
+    const newDepth = topLayer.depth;
+    const nextDirection = direction == "x" ? "z" : "x";
+
+    if (scoreElement) scoreElement.innerText = `${stack.length - 1} ◆`;
+    addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+
+    // 🔊 Play success sound
+    playPlaceSound();
+  } else {
+    missedTheSpot();
+  }
+}
+
+// In `missedTheSpot()`, add a fail sound
+const originalMissedTheSpot = missedTheSpot;
+missedTheSpot = function () {
+  playFailSound(); // 🔊 Play fail sound
+  originalMissedTheSpot();
+};
