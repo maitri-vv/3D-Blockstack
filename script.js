@@ -129,8 +129,6 @@ function init() {
   const width = 10;
   const height = width / aspect;
 
-
-
   camera = new THREE.OrthographicCamera(
     width / -2, // left
     width / 2, // right
@@ -140,17 +138,11 @@ function init() {
     100 // far plane
   );
 
-  /*
-  // If you want to use perspective camera instead, uncomment these lines
-  camera = new THREE.PerspectiveCamera(
-    45, // field of view
-    aspect, // aspect ratio
-    1, // near plane
-    100 // far plane
-  );
-  */
+  // Store the initial camera dimensions so we can easily reset them later
+  camera.userData.initialWidth = width;
+  camera.userData.initialHeight = height;
 
-  camera.position.set(3, 3, 3);
+  camera.position.set(5, 3, 5);
   camera.lookAt(0, 0, 0);
 
   scene = new THREE.Scene();
@@ -180,10 +172,6 @@ function init() {
 
   // Apply gradient background to scene
   scene.background = createGradientBackground();
-  /*
-  scene.background = new THREE.Color(0x87CEEB); // Sky blue
-*/
-
 
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
@@ -251,6 +239,18 @@ function startGame() {
     // Reset camera positions
     camera.position.set(4, 4, 4);
     camera.lookAt(0, 0, 0);
+
+    // Reset the camera's zoom (orthographic projection) to its initial state
+    const initialWidth = camera.userData.initialWidth || 10;
+    const initialHeight = camera.userData.initialHeight || (initialWidth / (window.innerWidth / window.innerHeight));
+    
+    camera.left = -initialWidth / 2;
+    camera.right = initialWidth / 2;
+    camera.top = initialHeight / 2;
+    camera.bottom = -initialHeight / 2;
+    
+    // Apply the changes
+    camera.updateProjectionMatrix();
   }
 }
 
@@ -272,6 +272,7 @@ function setResponsiveBoxSize() {
     originalBoxSize = 4; // desktop and most tablets
   }
 }
+
 // Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
@@ -279,7 +280,6 @@ function createRingEffect(x, y, z) {
     color: 0xffd700, // Golden yellow
     transparent: true,
     opacity: 0.8,
-
   });
 
   const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -514,20 +514,80 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
-  // Evaluate and update high score
-  const currentScore = Math.max(0, stack.length - 1);
-  if (currentScore > highScore) {
-    highScore = currentScore;
-    saveHighScore(highScore);
-  }
-  // Update end-game UI with current and high scores
-  if (endScoreElement) endScoreElement.innerText = `${currentScore} ◆`;
-  if (endHighScoreElement) endHighScoreElement.innerText = `${highScore} ◆`;
+  
+  // Calculate the height of the stack
+  const stackHeight = boxHeight * (stack.length - 1);
+  const stackCenter = stackHeight * 0.5;
+  
+  // Current camera position and orthographic bounds
+  const currentCameraPos = {
+    x: camera.position.x,
+    y: camera.position.y,
+    z: camera.position.z
+  };
+  
+  // Calculate zoom-out distance based on stack height
+  const zoomFactor = Math.max(2.5, stackHeight * 0.25); // Scale with stack height
+  
+  const targetCameraPos = {
+    x: currentCameraPos.x * zoomFactor,
+    y: stackCenter + (stackHeight * 0.4),
+    z: currentCameraPos.z * zoomFactor
+  };
+  
+  // Animate orthographic camera bounds to create "zoom out" effect (makes blocks appear smaller)
+  const initialWidth = camera.userData.initialWidth || 10;
+  const initialHeight = camera.userData.initialHeight || (initialWidth / (window.innerWidth / window.innerHeight));
+  
+  const cameraZoom = { 
+    zoom: 1,
+    lookAtY: 0
+  };
+  
+  const targetZoom = Math.max(2.0, stackHeight * 0.15); // Zoom out more for taller stacks
+  
+  // Animate camera position and zoom simultaneously
+  new TWEEN.Tween(currentCameraPos)
+    .to(targetCameraPos, 2500)
+    .easing(TWEEN.Easing.Cubic.Out)
+    .onUpdate(() => {
+      camera.position.set(currentCameraPos.x, currentCameraPos.y, currentCameraPos.z);
+    })
+    .start();
+  
+  // Animate the orthographic zoom (this makes blocks appear smaller)
+  new TWEEN.Tween(cameraZoom)
+    .to({ zoom: targetZoom, lookAtY: stackCenter }, 2500)
+    .easing(TWEEN.Easing.Cubic.Out)
+    .onUpdate(() => {
+      // Adjust orthographic frustum to simulate zoom out
+      const width = initialWidth * cameraZoom.zoom;
+      const height = initialHeight * cameraZoom.zoom;
+      camera.left = -width / 2;
+      camera.right = width / 2;
+      camera.top = height / 2;
+      camera.bottom = -height / 2;
+      camera.updateProjectionMatrix();
+      camera.lookAt(0, cameraZoom.lookAtY, 0);
+    })
+    .start();
+  
+  // Delay showing results until after zoom animation completes
+  setTimeout(() => {
+    const currentScore = Math.max(0, stack.length - 1);
+    if (currentScore > highScore) {
+      highScore = currentScore;
+      saveHighScore(highScore);
+    }
+    // Update end-game UI with current and high scores
+    if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore} ◆`;
+    if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore} ◆`;
 
-  // Update restart message based on device type
-  updateRestartMessage();
+    // Update restart message based on device type
+    updateRestartMessage();
 
-  if (resultsElement && !autopilot) resultsElement.style.display = "flex";
+    if (resultsElement && !autopilot) resultsElement.style.display = "flex";
+  }, 2500);
 }
 
 function animation(time) {
