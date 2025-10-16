@@ -434,12 +434,11 @@ window.addEventListener("keydown", function (event) {
 window.addEventListener("touchstart", function (event) {
   event.preventDefault(); // Prevent double-firing and unwanted scrolling
 
-
   if (gameEnded) {
     // If game is over, restart on tap
-    
+    gameEnded = false;
     startGame();
-  } else {
+  } else if (!autopilot) {
     // During gameplay, handle normal touch
     eventHandler();
   }
@@ -453,16 +452,10 @@ window.addEventListener("keydown", function (event) {
   }
   if (event.key == "R" || event.key == "r") {
     event.preventDefault();
-
-
-  if (gameEnded) {
-    // If game is over, restart on tap
     startGame();
-  } else {
-    // During gameplay, handle normal touch
-    eventHandler();
+    return;
   }
-}, { passive: false });
+});
 
 function eventHandler() {
   if (autopilot) startGame();
