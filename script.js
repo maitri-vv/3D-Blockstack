@@ -97,8 +97,11 @@ function init() {
 
     particlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
+    // Get theme colors for particles
+    const themeColors = window.themeManager.getCurrentThemeColors();
+    
     const particlesMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
+      color: themeColors.particleColor,
       size: 0.05,
       transparent: true,
       opacity: 0.5,
@@ -155,7 +158,7 @@ function init() {
 
   scene = new THREE.Scene();
   // Create a canvas for the gradient texture
-  function createGradientBackground() {
+  function createGradientBackground(colors) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -163,11 +166,11 @@ function init() {
     canvas.width = 512;
     canvas.height = 512;
 
-    // Create a gradient (from pink to light pink beige)
+    // Create a gradient using theme colors
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#ff9f43"); // Light pink
-    gradient.addColorStop(0.5, "#feca57"); // Soft pink
-    gradient.addColorStop(1, "#f8e9a1"); // Light beige
+    gradient.addColorStop(0, colors.top);
+    gradient.addColorStop(0.5, colors.middle);
+    gradient.addColorStop(1, colors.bottom);
 
     // Apply gradient to canvas
     ctx.fillStyle = gradient;
@@ -178,11 +181,24 @@ function init() {
     return texture;
   }
 
-  // Apply gradient background to scene
-  scene.background = createGradientBackground();
-  /*
-  scene.background = new THREE.Color(0x87CEEB); // Sky blue
-*/
+  // Function to update scene colors based on current theme
+  function updateSceneColors() {
+    const themeColors = window.themeManager.getCurrentThemeColors();
+    
+    // Update scene background
+    scene.background = createGradientBackground(themeColors.sceneBackground);
+    
+    // Update particle colors if they exist
+    if (particleData && particleData.particles) {
+      particleData.particles.material.color.set(themeColors.particleSpecialColor);
+    }
+    
+    // We don't update existing blocks' colors, only new ones will use the new theme
+  }
+  
+  // Apply initial theme colors
+  const initialThemeColors = window.themeManager.getCurrentThemeColors();
+  scene.background = createGradientBackground(initialThemeColors.sceneBackground);
 
 
   // Foundation
@@ -325,8 +341,11 @@ function createParticles() {
 
   particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
+  // Get theme colors for special particles
+  const themeColors = window.themeManager.getCurrentThemeColors();
+  
   const particleMaterial = new THREE.PointsMaterial({
-    color: 0xffd700, // Golden yellow
+    color: themeColors.particleSpecialColor,
     size: 0.5, // Particle size
     transparent: true,
     opacity: 0.8,
@@ -367,7 +386,13 @@ function addOverhang(x, z, width, depth) {
 function generateBox(x, y, z, width, depth, falls) {
   // ThreeJS
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
-  const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100%, 50%)`);
+  
+  // Get current theme colors for block generation
+  const themeColors = window.themeManager.getCurrentThemeColors();
+  const hueBase = themeColors.blockHueBase || 30;
+  
+  // Create color with theme-based hue
+  const color = new THREE.Color(`hsl(${hueBase + stack.length * 4}, 100%, 50%)`);
   const material = new THREE.MeshLambertMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(x, y, z);
@@ -614,3 +639,6 @@ window.addEventListener("resize", () => {
   // Re-render once to avoid a visible gap during resize
   renderer.render(scene, camera);
 });
+
+// Make updateSceneColors available globally for theme switching
+window.updateSceneColors = updateSceneColors;
