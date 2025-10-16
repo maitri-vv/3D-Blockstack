@@ -11,6 +11,7 @@ let autopilot;
 let gameEnded;
 let robotPrecision; // Determines how precise the game is on autopilot
 
+// UI elements
 const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
@@ -44,6 +45,7 @@ function updateRestartMessage() {
   }
 }
 
+// Load and save high score from localStorage
 function loadHighScore() {
   try {
     const saved = localStorage.getItem(HIGH_SCORE_KEY);
@@ -52,6 +54,8 @@ function loadHighScore() {
     highScore = 0;
   }
 }
+
+// save high score to localStorage
 function saveHighScore(value) {
   try {
     localStorage.setItem(HIGH_SCORE_KEY, String(Math.max(0, value | 0)));
@@ -60,7 +64,7 @@ function saveHighScore(value) {
   }
 }
 
-
+// Initialize the game
 init();
 
 // Determines how precise the game is on autopilot
@@ -68,7 +72,7 @@ function setRobotPrecision() {
   robotPrecision = Math.random() * 1 - 0.5;
 }
 
-
+// Main init function
 function init() {
   autopilot = true;
   gameEnded = false;
@@ -82,7 +86,6 @@ function init() {
 
   // Load high score on initial game setup
   loadHighScore();
-
 
   function createParticleBackground(scene) {
     const particleCount = 500;
@@ -128,8 +131,6 @@ function init() {
   const aspect = window.innerWidth / window.innerHeight;
   const width = 10;
   const height = width / aspect;
-
-
 
   camera = new THREE.OrthographicCamera(
     width / -2, // left
@@ -184,7 +185,6 @@ function init() {
   scene.background = new THREE.Color(0x87CEEB); // Sky blue
 */
 
-
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
 
@@ -210,8 +210,7 @@ function init() {
   camera.position.z = 3;
 }
 
-
-
+// Start or restart the game
 function startGame() {
   autopilot = false;
   gameEnded = false;
@@ -272,6 +271,7 @@ function setResponsiveBoxSize() {
     originalBoxSize = 4; // desktop and most tablets
   }
 }
+
 // Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
@@ -301,8 +301,7 @@ function createRingEffect(x, y, z) {
     .start();
 }
 
-
-
+// Function to add a new layer
 function addLayer(x, z, width, depth, direction) {
   const y = boxHeight * stack.length; // Add the new box one layer higher
   const layer = generateBox(x, y, z, width, depth, false);
@@ -356,14 +355,14 @@ function animateParticles(particleData) {
 // Initialize Particles
 const particleData = createParticles();
 
-
-
+// Function to add an overhang that falls down
 function addOverhang(x, z, width, depth) {
   const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
   const overhang = generateBox(x, y, z, width, depth, true);
   overhangs.push(overhang);
 }
 
+// Helper function to generate a box (both in ThreeJS and CannonJS)
 function generateBox(x, y, z, width, depth, falls) {
   // ThreeJS
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
@@ -392,6 +391,7 @@ function generateBox(x, y, z, width, depth, falls) {
   };
 }
 
+// Function to cut the top layer and return the overlap
 function cutBox(topLayer, overlap, size, delta) {
   const direction = topLayer.direction;
   const newWidth = direction == "x" ? overlap : topLayer.width;
@@ -415,7 +415,6 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.shapes = [];
   topLayer.cannonjs.addShape(shape);
 }
-
 
 // Event listeners for mouse, touch, and keyboard
 window.addEventListener("mousedown", eventHandler);
@@ -446,12 +445,13 @@ window.addEventListener("touchstart", function (event) {
   }
 }, { passive: false });
 
-
+// Unified event handler for both click and touch
 function eventHandler() {
   if (autopilot) startGame();
   else splitBlockAndAddNextOneIfOverlaps();
 }
 
+// Function to split the block and add the next one if it overlaps
 function splitBlockAndAddNextOneIfOverlaps() {
   if (gameEnded) return;
 
@@ -497,9 +497,9 @@ function splitBlockAndAddNextOneIfOverlaps() {
   } else {
     missedTheSpot();
   }
-
 }
 
+// Function to handle game over scenario
 function missedTheSpot() {
   const topLayer = stack[stack.length - 1];
 
@@ -514,8 +514,10 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
+
   // Evaluate and update high score
-  const currentScore = Math.max(0, stack.length - 1);
+  const currentScore = Math.max(0, stack.length - 2); // Exclude foundation and first moving layer
+
   if (currentScore > highScore) {
     highScore = currentScore;
     saveHighScore(highScore);
@@ -530,6 +532,7 @@ function missedTheSpot() {
   if (resultsElement && !autopilot) resultsElement.style.display = "flex";
 }
 
+// Main animation loop
 function animation(time) {
   if (lastTime) {
     const timePassed = time - lastTime;
@@ -578,6 +581,7 @@ function animation(time) {
   lastTime = time;
 }
 
+// Function to update physics world and sync with Three.js
 function updatePhysics(timePassed) {
   world.step(timePassed / 1000); // Step the physics world
 
@@ -588,6 +592,7 @@ function updatePhysics(timePassed) {
   });
 }
 
+// Handle window resize events
 window.addEventListener("resize", () => {
   // Adjust camera
   // Recalculate responsive box size so new blocks follow new dimensions
