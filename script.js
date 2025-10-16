@@ -20,6 +20,53 @@ const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
 const restartTextElement = document.getElementById("restart-text");
 
+// Audio context
+let audioContext;
+
+// Sound effects
+function playPlaceSound() {
+  if (!audioContext) return;
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioContext.currentTime + 0.5
+  );
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.5);
+}
+
+function playGameOverSound() {
+  if (!audioContext) return;
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.type = "sawtooth";
+  oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+  oscillator.frequency.exponentialRampToValueAtTime(
+    220,
+    audioContext.currentTime + 0.5
+  );
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioContext.currentTime + 0.5
+  );
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.5);
+}
+
 // High score storage
 const HIGH_SCORE_KEY = "stackerHighScore";
 let highScore = 0;
@@ -448,6 +495,9 @@ window.addEventListener("touchstart", function (event) {
 
 
 function eventHandler() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
   if (autopilot) startGame();
   else splitBlockAndAddNextOneIfOverlaps();
 }
@@ -493,6 +543,7 @@ function splitBlockAndAddNextOneIfOverlaps() {
     const nextDirection = direction == "x" ? "z" : "x";
 
     if (scoreElement) scoreElement.innerText = `${stack.length - 1} ◆`;
+    playPlaceSound();
     addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
   } else {
     missedTheSpot();
@@ -514,6 +565,7 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
+  playGameOverSound();
   // Evaluate and update high score
   const currentScore = Math.max(0, stack.length - 1);
   if (currentScore > highScore) {
