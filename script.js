@@ -521,8 +521,8 @@ function missedTheSpot() {
     saveHighScore(highScore);
   }
   // Update end-game UI with current and high scores
-  if (endScoreElement) endScoreElement.innerText = `Current Score: ${currentScore}`;
-  if (endHighScoreElement) endHighScoreElement.innerText = `High Score: ${highScore}`;
+  if (endScoreElement) endScoreElement.innerText = `${currentScore} ◆`;
+  if (endHighScoreElement) endHighScoreElement.innerText = `${highScore} ◆`;
 
   // Update restart message based on device type
   updateRestartMessage();
