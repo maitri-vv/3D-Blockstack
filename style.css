@@ -283,6 +283,7 @@ body {
 }
 
 .social-follow {
+  align-items: center;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 200, 100, 0.15);
