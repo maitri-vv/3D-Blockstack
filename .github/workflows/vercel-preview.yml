@@ -6,19 +6,16 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 # --------------------------------------------------------------------------------
-# FIX: Use TWO separate triggers for deployment and cleanup
+# FIX: Use pull_request_target to allow commenting on forked PRs
 # --------------------------------------------------------------------------------
 on:
   # Trigger deployment on PR opening/new commits (synchronize)
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # Using pull_request_target to grant write permissions for forked PRs
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
     branches:
       - main
       - master # Include master if you use it
-
-  # Trigger cleanup when a PR is closed (merged or manually closed)
-  pull_request_target:
-    types: [closed]
 
 jobs:
   # ==============================================================================
@@ -26,7 +23,7 @@ jobs:
   # ==============================================================================
   deploy-preview:
     # Only run this job if the PR is NOT closing
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     
     permissions:
@@ -36,6 +33,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
@@ -75,7 +74,7 @@ jobs:
   # ==============================================================================
   vercel-cleanup:
     # FIX: Only run this job if the PR is closing.
-    if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     
     # Needs deploy-preview is not necessary since they run on different events.

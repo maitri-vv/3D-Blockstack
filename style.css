@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap");
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   color: white;
@@ -7,6 +11,12 @@ body {
   cursor: pointer;
   overflow: hidden;
   background: linear-gradient(to bottom, #87CEEB, #87CEEB 70%, #32CD32 70%, #32CD32 100%);
+  /* Support for notched devices */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* UI Elements */
@@ -44,7 +54,8 @@ body {
     inset 0 1px 0 rgba(255, 220, 150, 0.15);
   backdrop-filter: blur(10px);
   min-width: 320px;
-  max-width: 90vw;
+  max-width: min(90vw, 500px);
+  width: auto;
   animation: resultsFadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -61,7 +72,7 @@ body {
 }
 
 #results .content {
-  padding: 2rem 1.5rem;
+  padding: 2rem 2rem;
 }
 
 .game-over-title {
@@ -130,6 +141,7 @@ body {
   gap: 1rem;
   margin: 1.5rem 0;
   align-items: stretch;
+  justify-content: center;
   animation: slideUp 0.5s ease-out 0.2s backwards;
 }
 
@@ -153,6 +165,9 @@ body {
   padding: 1rem;
   text-align: center;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .score-card:hover {
@@ -172,6 +187,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  min-height: 1.5rem;
 }
 
 .trophy-icon {
@@ -190,6 +206,10 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 2px 10px rgba(255, 217, 61, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .high-score .score-value {
@@ -337,6 +357,15 @@ a:visited {
   color: inherit;
 }
 
+/* Add diamond icon after score */
+.score-value::after {
+  content: '◆';
+  display: inline-block;
+  font-size: 0.6em;
+  opacity: 0.9;
+  transform: translateY(-0.1em);
+}
+
 /* Responsive tweaks for small screens */
 @media (max-width: 600px) {
   #instructions .content p {
@@ -353,20 +382,23 @@ a:visited {
 
   #results {
     min-width: 280px;
-    max-width: 90vw;
+    max-width: 92vw;
+    width: auto;
   }
 
   #results .content {
-    padding: 1.25rem 1rem;
+    padding: 1.5rem 1.25rem;
   }
 
   .score-container {
-    flex-direction: column;
-    gap: 0.6rem;
+    flex-direction: row;
+    gap: 0.75rem;
+    justify-content: center;
   }
 
   .score-divider {
-    display: none;
+    width: 1px;
+    min-height: 80px;
   }
 
   .game-over-title {
@@ -388,7 +420,8 @@ a:visited {
   }
 
   .score-card {
-    padding: 0.75rem;
+    padding: 1rem 0.75rem;
+    min-width: 120px;
   }
 
   .score-label {
@@ -397,7 +430,11 @@ a:visited {
   }
 
   .score-value {
-    font-size: 1.75rem;
+    font-size: 2rem;
+  }
+
+  .score-value::after {
+    font-size: 0.5em;
   }
 
   #score {
@@ -517,6 +554,48 @@ a:visited {
   .twitter-link {
     min-height: 44px;
     padding: 0.6rem 0.8rem;
+  }
+}
+
+/* Extra small screens (phones < 360px) */
+@media (max-width: 360px) {
+  #results {
+    min-width: 260px;
+    max-width: 95vw;
+  }
+
+  #results .content {
+    padding: 1.25rem 1rem;
+  }
+
+  .game-over-title h1 {
+    font-size: 1.4rem;
+  }
+
+  .miss-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .score-card {
+    padding: 0.75rem 0.5rem;
+    min-width: 100px;
+  }
+
+  .score-value {
+    font-size: 1.6rem;
+  }
+
+  .score-label {
+    font-size: 0.6rem;
+  }
+
+  .restart-hint {
+    font-size: 0.8rem;
+  }
+
+  .social-follow {
+    font-size: 0.8rem;
   }
 }
 
