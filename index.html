@@ -3,9 +3,15 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Stacking Game</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="shortcut icon" href="favicon.ico" />
 </head>
 
 <body>
@@ -28,6 +34,7 @@
         </svg>
         <h1>Game Over!</h1>
       </div>
+
       <p class="miss-message">You missed the block</p>
 
       <div class="score-container">
@@ -35,7 +42,9 @@
           <div class="score-label">Your Score</div>
           <div id="end-score" class="score-value">0</div>
         </div>
+
         <div class="score-divider"></div>
+
         <div class="score-card high-score">
           <div class="score-label">
             <svg class="trophy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -49,6 +58,7 @@
             </svg>
             Best Score
           </div>
+
           <div id="end-high-score" class="score-value">0</div>
         </div>
       </div>
@@ -63,7 +73,7 @@
       </div>
 
       <div class="social-follow">
-        Follow me
+        Follow me on
         <a href="https://twitter.com/maitrivv" target="_top" class="twitter-link">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -77,8 +87,6 @@
 
   <div id="score">0</div>
 
-
-
   <!-- Include Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
@@ -87,7 +95,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
   <!-- Game Script -->
   <script src="script.js"></script>
-
 
 </body>
 

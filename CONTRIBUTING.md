@@ -8,7 +8,7 @@ Thank you for your interest in contributing to 3D-Blockstack! This document prov
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/3D-Blockstack.git
+   git clone https://github.com/maitri-vv/3D-Blockstack.git
    cd 3D-Blockstack
    ```
 
