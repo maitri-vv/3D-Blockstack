@@ -107,41 +107,103 @@ body {
 /* Theme Selector UI */
 #theme-selector {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
+  top: clamp(8px, 2.5vh, 20px);
+  right: clamp(120px, 15vw, 200px);
+  z-index: 11;
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 50px;
+  backdrop-filter: blur(5px);
 }
 
 .theme-button {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 3px solid rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  background-clip: padding-box;
 }
 
 .theme-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transform: scale(1.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  border-color: white;
 }
 
 .theme-button.active {
-  transform: scale(1.15);
-  box-shadow: 0 0 0 2px white, 0 0 10px rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(255, 255, 255, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.5);
+  border-color: white;
 }
 
 #theme-default {
-  background: linear-gradient(135deg, #87CEEB, #32CD32);
+  background: linear-gradient(135deg, #87CEEB 0%, #32CD32 100%);
+  box-shadow: 0 4px 12px rgba(135, 206, 235, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+#theme-default:hover {
+  box-shadow: 0 6px 18px rgba(135, 206, 235, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+#theme-default.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(135, 206, 235, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.6);
 }
 
 #theme-night {
-  background: linear-gradient(135deg, #0f2027, #203a43);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.6), inset 0 1px 2px rgba(100, 200, 255, 0.2);
+}
+
+#theme-night:hover {
+  box-shadow: 0 6px 18px rgba(79, 172, 254, 0.5), inset 0 1px 2px rgba(100, 200, 255, 0.3);
+}
+
+#theme-night.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(79, 172, 254, 0.6), inset 0 1px 3px rgba(100, 200, 255, 0.4);
 }
 
 #theme-sunset {
-  background: linear-gradient(135deg, #ff7e5f, #feb47b);
+  background: linear-gradient(135deg, #ff6b35 0%, #ffa500 100%);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.5), inset 0 1px 2px rgba(255, 200, 100, 0.3);
+}
+
+#theme-sunset:hover {
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.7), inset 0 1px 2px rgba(255, 200, 100, 0.4);
+}
+
+#theme-sunset.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(255, 107, 53, 0.7), inset 0 1px 3px rgba(255, 200, 100, 0.5);
+}
+
+/* Responsive adjustments for theme selector */
+@media (max-width: 768px) {
+  #theme-selector {
+    right: clamp(60px, 12vw, 140px);
+  }
+  
+  .theme-button {
+    width: 32px;
+    height: 32px;
+    border-width: 2.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  #theme-selector {
+    top: clamp(8px, 2.5vh, 16px);
+    right: clamp(50px, 10vw, 100px);
+    gap: 10px;
+    padding: 6px 10px;
+  }
+  
+  .theme-button {
+    width: 28px;
+    height: 28px;
+    border-width: 2px;
+  }
 }
