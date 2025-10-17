@@ -339,6 +339,9 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener(
   "touchstart",
   (e) => {
+  if (e.target.closest(".twitter-link")){
+      return;
+    }
     e.preventDefault();
     gameEnded ? startGame() : eventHandler();
   },
