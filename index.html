@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,6 +25,7 @@
   </div>
 
   <div id="results">
+    <button id="close-results" class="close-btn" title="Close">&times;</button>
     <div class="content">
       <div class="game-over-title">
         <svg class="miss-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -34,6 +36,7 @@
         </svg>
         <h1>Game Over!</h1>
       </div>
+
       <p class="miss-message">You missed the block</p>
 
       <div class="score-container">
@@ -41,7 +44,9 @@
           <div class="score-label">Your Score</div>
           <div id="end-score" class="score-value">0</div>
         </div>
+
         <div class="score-divider"></div>
+
         <div class="score-card high-score">
           <div class="score-label">
             <svg class="trophy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -55,6 +60,7 @@
             </svg>
             Best Score
           </div>
+
           <div id="end-high-score" class="score-value">0</div>
         </div>
       </div>
@@ -69,7 +75,7 @@
       </div>
 
       <div class="social-follow">
-        Follow me
+        Follow me on
         <a href="https://twitter.com/maitrivv" target="_top" class="twitter-link">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -83,12 +89,12 @@
 
   <div id="score">0</div>
 
-  <div id="theme-selector">
-    <div id="theme-default" class="theme-button active" title="Default Theme"></div>
-    <div id="theme-night" class="theme-button" title="Night Theme"></div>
-    <div id="theme-sunset" class="theme-button" title="Sunset Theme"></div>
+  <!-- Theme Buttons -->
+  <div id="theme-controls" style="position: absolute; top: 80px; right: 20px; z-index: 1000; display: flex; gap: 10px; flex-direction: column;">
+    <button id="theme-default" class="theme-btn active" title="Default Theme">🌅</button>
+    <button id="theme-night" class="theme-btn" title="Night Theme">🌙</button>
+    <button id="theme-sunset" class="theme-btn" title="Sunset Theme">🌇</button>
   </div>
-
 
   <!-- Include Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -100,7 +106,6 @@
   <script src="themes.js"></script>
   <!-- Game Script -->
   <script src="script.js"></script>
-
 
 </body>
 

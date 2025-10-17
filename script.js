@@ -1,49 +1,53 @@
-window.focus(); // Capture keys right away (by default focus is on editor)
+window.focus(); // Ensure keys are captured
 
-let camera, scene, renderer; // ThreeJS globals
-let world; // CannonJs world
-let lastTime; // Last timestamp of animation
-let stack; // Parts that stay solid on top of each other
-let overhangs; // Overhanging parts that fall down
-const boxHeight = 1; // Height of each layer
-let originalBoxSize = 3; // Original width and height of a box (made responsive)
-let autopilot;
-let gameEnded;
-let robotPrecision; // Determines how precise the game is on autopilot
+// ----- Globals -----
+let camera, scene, renderer;
+let world;
+let lastTime;
+let stack = [];
+let overhangs = [];
+const boxHeight = 1;
+let originalBoxSize = 3;
+let autopilot = true;
+let gameEnded = false;
+let robotPrecision;
 
+// UI elements
 const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
-
-// High score UI references
 const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
 const restartTextElement = document.getElementById("restart-text");
 
-// High score storage
+// High score
 const HIGH_SCORE_KEY = "stackerHighScore";
 let highScore = 0;
 
-// Detect if user is on a touch device
+// Audio
+const sounds = {
+  place: new Audio("sound/put.bg.mp3"),
+  fail: new Audio("sound/fall.bg.mp3"),
+  bgm: new Audio("sound/bg.mp3.mp3"),
+};
+Object.values(sounds).forEach((s) => s.load());
+sounds.bgm.volume = 0.2;
+sounds.bgm.loop = true;
+let muted = false;
+
+// ----- Utility Functions -----
 function isTouchDevice() {
-  return (
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0
-  );
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
-// Update restart message based on device type
 function updateRestartMessage() {
-  if (restartTextElement) {
-    if (isTouchDevice()) {
-      restartTextElement.innerHTML = "Tap anywhere to restart";
-    } else {
-      restartTextElement.innerHTML = 'Press <kbd>R</kbd> to restart';
-    }
-  }
+  if (!restartTextElement) return;
+  restartTextElement.innerHTML = isTouchDevice()
+    ? "Tap anywhere to restart"
+    : "Press <kbd>R</kbd> to restart";
 }
 
+// Load and save high score from localStorage
 function loadHighScore() {
   try {
     const saved = localStorage.getItem(HIGH_SCORE_KEY);
@@ -52,23 +56,64 @@ function loadHighScore() {
     highScore = 0;
   }
 }
+
+// save high score to localStorage
 function saveHighScore(value) {
   try {
     localStorage.setItem(HIGH_SCORE_KEY, String(Math.max(0, value | 0)));
-  } catch (_) {
-    // ignore storage errors
-  }
+  } catch (_) {}
 }
 
-
+// Initialize the game
 init();
 
 // Determines how precise the game is on autopilot
 function setRobotPrecision() {
-  robotPrecision = Math.random() * 1 - 0.5;
+  robotPrecision = Math.random() - 0.5;
 }
 
+// Create a canvas for the gradient texture
+function createGradientBackground(colors) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
+  // Set canvas size
+  canvas.width = 512;
+  canvas.height = 512;
+
+  // Create a gradient using theme colors
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, colors.top);
+  gradient.addColorStop(0.5, colors.middle);
+  gradient.addColorStop(1, colors.bottom);
+
+  // Apply gradient to canvas
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Create texture from canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+// Function to update scene colors based on current theme
+function updateSceneColors() {
+  if (!scene) return; // Scene not initialized yet
+  
+  const themeColors = window.themeManager.getCurrentThemeColors();
+  
+  // Update scene background
+  scene.background = createGradientBackground(themeColors.sceneBackground);
+  
+  // Update particle colors if they exist
+  if (particleData && particleData.particles) {
+    particleData.particles.material.color.set(themeColors.particleSpecialColor);
+  }
+  
+  // We don't update existing blocks' colors, only new ones will use the new theme
+}
+
+// Main init function
 function init() {
   autopilot = true;
   gameEnded = false;
@@ -82,7 +127,6 @@ function init() {
 
   // Load high score on initial game setup
   loadHighScore();
-
 
   function createParticleBackground(scene) {
     const particleCount = 500;
@@ -132,8 +176,6 @@ function init() {
   const width = 10;
   const height = width / aspect;
 
-
-
   camera = new THREE.OrthographicCamera(
     width / -2, // left
     width / 2, // right
@@ -157,49 +199,10 @@ function init() {
   camera.lookAt(0, 0, 0);
 
   scene = new THREE.Scene();
-  // Create a canvas for the gradient texture
-  function createGradientBackground(colors) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    // Set canvas size
-    canvas.width = 512;
-    canvas.height = 512;
-
-    // Create a gradient using theme colors
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, colors.top);
-    gradient.addColorStop(0.5, colors.middle);
-    gradient.addColorStop(1, colors.bottom);
-
-    // Apply gradient to canvas
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Create texture from canvas
-    const texture = new THREE.CanvasTexture(canvas);
-    return texture;
-  }
-
-  // Function to update scene colors based on current theme
-  function updateSceneColors() {
-    const themeColors = window.themeManager.getCurrentThemeColors();
-    
-    // Update scene background
-    scene.background = createGradientBackground(themeColors.sceneBackground);
-    
-    // Update particle colors if they exist
-    if (particleData && particleData.particles) {
-      particleData.particles.material.color.set(themeColors.particleSpecialColor);
-    }
-    
-    // We don't update existing blocks' colors, only new ones will use the new theme
-  }
   
   // Apply initial theme colors
   const initialThemeColors = window.themeManager.getCurrentThemeColors();
   scene.background = createGradientBackground(initialThemeColors.sceneBackground);
-
 
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
@@ -226,8 +229,7 @@ function init() {
   camera.position.z = 3;
 }
 
-
-
+// Start or restart the game
 function startGame() {
   autopilot = false;
   gameEnded = false;
@@ -256,6 +258,9 @@ function startGame() {
       scene.remove(mesh);
     }
 
+    // Restore theme colors
+    updateSceneColors();
+
     // Foundation
     addLayer(0, 0, originalBoxSize, originalBoxSize);
 
@@ -272,22 +277,14 @@ function startGame() {
 
 // Compute responsive box size based on viewport dimensions
 function setResponsiveBoxSize() {
-  // Choose base scale: keep boxes readable across devices
   const vw = Math.max(window.innerWidth, 320);
   const vh = Math.max(window.innerHeight, 320);
-
-  // We'll base the box size on the smaller of (viewport width, viewport height)
-  // Map range: small screens -> ~1.8, medium -> ~3, large -> ~4.5
   const minDim = Math.min(vw, vh);
-  // Keep desktop size at the original 3 units. Reduce only for smaller screens.
-  if (minDim < 420) {
-    originalBoxSize = 1.8; // very small phones
-  } else if (minDim < 768) {
-    originalBoxSize = 2.6; // small tablets / large phones
-  } else {
-    originalBoxSize = 4; // desktop and most tablets
-  }
+  if (minDim < 420) originalBoxSize = 1.8;
+  else if (minDim < 768) originalBoxSize = 2.6;
+  else originalBoxSize = 4;
 }
+
 // Function to create a ring effect at (x, y, z)
 function createRingEffect(x, y, z) {
   const ringGeometry = new THREE.RingGeometry(0.8, 1.5, 32);
@@ -295,96 +292,55 @@ function createRingEffect(x, y, z) {
     color: 0xffd700, // Golden yellow
     transparent: true,
     opacity: 0.8,
-
   });
+  const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+  ring.position.set(x, y + boxHeight / 2, z);
+  ring.rotation.x = Math.PI / 2;
+  scene.add(ring);
 
-  const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
-  ringMesh.position.set(x, y + 0.1, z);
-  ringMesh.rotation.x = -Math.PI / 2; // Make it flat
-
-  scene.add(ringMesh);
-
-  // Expand & fade out animation
-  new TWEEN.Tween(ringMesh.scale)
-    .to({ x: 2, y: 2 }, 800) // Expands outward
-    .easing(TWEEN.Easing.Quadratic.Out)
-    .start();
-
-  new TWEEN.Tween(ringMaterial)
-    .to({ opacity: 0 }, 800) // Fades out
-    .easing(TWEEN.Easing.Quadratic.Out)
-    .onComplete(() => scene.remove(ringMesh)) // Remove after animation
-    .start();
+  // Remove ring after animation
+  setTimeout(() => {
+    scene.remove(ring);
+  }, 600);
 }
 
-
-
-function addLayer(x, z, width, depth, direction) {
-  const y = boxHeight * stack.length; // Add the new box one layer higher
-  const layer = generateBox(x, y, z, width, depth, false);
-  layer.direction = direction;
-  stack.push(layer);
-  createRingEffect(x, y, z);
-}
-
-// Function to Create Particles
 function createParticles() {
-  const particleCount = 200; // Number of particles
-  const particleGeometry = new THREE.BufferGeometry();
+  const particleCount = 200;
+  const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
-
   for (let i = 0; i < particleCount * 3; i += 3) {
-    positions[i] = (Math.random() - 0.5) * 50; // Spread particles across X-axis
-    positions[i + 1] = Math.random() * 30; // Y-axis height variation
-    positions[i + 2] = (Math.random() - 0.5) * 50; // Spread across Z-axis
+    positions[i] = (Math.random() - 0.5) * 50;
+    positions[i + 1] = Math.random() * 30;
+    positions[i + 2] = (Math.random() - 0.5) * 50;
   }
-
-  particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-
-  // Get theme colors for special particles
-  const themeColors = window.themeManager.getCurrentThemeColors();
-  
-  const particleMaterial = new THREE.PointsMaterial({
-    color: themeColors.particleSpecialColor,
-    size: 0.5, // Particle size
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color: 0xffd700,
+    size: 0.5,
     transparent: true,
     opacity: 0.8,
-    depthWrite: false
+    depthWrite: false,
   });
-
-  const particles = new THREE.Points(particleGeometry, particleMaterial);
+  const particles = new THREE.Points(geometry, material);
   scene.add(particles);
-
-  return { particles, particleGeometry };
+  return { particles, geometry };
 }
 
-// Function to Animate Particles (Floating Effect)
 function animateParticles(particleData) {
-  const positions = particleData.particleGeometry.attributes.position.array;
-
+  const positions = particleData.geometry.attributes.position.array;
   for (let i = 1; i < positions.length; i += 3) {
-    positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.02; // Floating motion
-    // keep particles within a bound to avoid runaway values
+    positions[i] += Math.sin(Date.now() * 0.001 + i) * 0.02;
     if (positions[i] > 100) positions[i] = -100;
     if (positions[i] < -100) positions[i] = 100;
   }
-
-  particleData.particleGeometry.attributes.position.needsUpdate = true;
+  particleData.geometry.attributes.position.needsUpdate = true;
 }
 
 // Initialize Particles
 const particleData = createParticles();
 
-
-
-function addOverhang(x, z, width, depth) {
-  const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
-  const overhang = generateBox(x, y, z, width, depth, true);
-  overhangs.push(overhang);
-}
-
+// Helper function to generate a box (both in ThreeJS and CannonJS)
 function generateBox(x, y, z, width, depth, falls) {
-  // ThreeJS
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
   
   // Get current theme colors for block generation
@@ -398,42 +354,46 @@ function generateBox(x, y, z, width, depth, falls) {
   mesh.position.set(x, y, z);
   scene.add(mesh);
 
-  // CannonJS
   const shape = new CANNON.Box(
     new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
   );
-  let mass = falls ? 5 : 0; // If it shouldn't fall then setting the mass to zero will keep it stationary
-  mass *= width / originalBoxSize; // Reduce mass proportionately by size
-  mass *= depth / originalBoxSize; // Reduce mass proportionately by size
+  let mass = falls ? 5 : 0;
+  mass *= width / originalBoxSize;
+  mass *= depth / originalBoxSize;
   const body = new CANNON.Body({ mass, shape });
   body.position.set(x, y, z);
   world.addBody(body);
 
-  return {
-    threejs: mesh,
-    cannonjs: body,
-    width,
-    depth
-  };
+  return { threejs: mesh, cannonjs: body, width, depth };
 }
 
-function cutBox(topLayer, overlap, size, delta) {
-  const direction = topLayer.direction;
-  const newWidth = direction == "x" ? overlap : topLayer.width;
-  const newDepth = direction == "z" ? overlap : topLayer.depth;
+function addLayer(x, z, width, depth, direction) {
+  const y = boxHeight * stack.length;
+  const layer = generateBox(x, y, z, width, depth, false);
+  layer.direction = direction;
+  stack.push(layer);
+  createRingEffect(x, y, z);
+}
 
-  // Update metadata
+function addOverhang(x, z, width, depth) {
+  const y = boxHeight * (stack.length - 1);
+  const overhang = generateBox(x, y, z, width, depth, true);
+  overhangs.push(overhang);
+}
+
+// Function to cut the top layer and return the overlap
+function cutBox(topLayer, overlap, size, delta) {
+  const dir = topLayer.direction;
+  const newWidth = dir === "x" ? overlap : topLayer.width;
+  const newDepth = dir === "z" ? overlap : topLayer.depth;
+
   topLayer.width = newWidth;
   topLayer.depth = newDepth;
 
-  // Update ThreeJS model
-  topLayer.threejs.scale[direction] = overlap / size;
-  topLayer.threejs.position[direction] -= delta / 2;
+  topLayer.threejs.scale[dir] = overlap / size;
+  topLayer.threejs.position[dir] -= delta / 2;
+  topLayer.cannonjs.position[dir] -= delta / 2;
 
-  // Update CannonJS model
-  topLayer.cannonjs.position[direction] -= delta / 2;
-
-  // Replace shape to a smaller one (in CannonJS you can't simply just scale a shape)
   const shape = new CANNON.Box(
     new CANNON.Vec3(newWidth / 2, boxHeight / 2, newDepth / 2)
   );
@@ -442,203 +402,222 @@ function cutBox(topLayer, overlap, size, delta) {
 }
 
 
-// Event listeners for mouse, touch, and keyboard
-window.addEventListener("mousedown", eventHandler);
 
-window.addEventListener("keydown", function (event) {
-  if (event.key == " ") {
-    event.preventDefault();
-    eventHandler();
-    return;
-  }
-  if (event.key == "R" || event.key == "r") {
-    event.preventDefault();
-    startGame();
-    return;
-  }
-});
-
-// Fixed touch handler for mobile: restart game when tapped after game over
-window.addEventListener("touchstart", function (event) {
-  event.preventDefault(); // Prevent double-firing and unwanted scrolling
-
-  if (gameEnded) {
-    // If game is over, restart on tap
-    startGame();
-  } else {
-    // During gameplay, handle normal touch
-    eventHandler();
-  }
-}, { passive: false });
-
-
-function eventHandler() {
-  if (autopilot) startGame();
-  else splitBlockAndAddNextOneIfOverlaps();
-}
-
+// Function to split the block and add the next one if it overlaps
 function splitBlockAndAddNextOneIfOverlaps() {
   if (gameEnded) return;
-
-  const topLayer = stack[stack.length - 1];
-  const previousLayer = stack[stack.length - 2];
-
-  const direction = topLayer.direction;
-
-  const size = direction == "x" ? topLayer.width : topLayer.depth;
-  const delta =
-    topLayer.threejs.position[direction] -
-    previousLayer.threejs.position[direction];
+  const top = stack[stack.length - 1];
+  const prev = stack[stack.length - 2];
+  const dir = top.direction;
+  const size = dir === "x" ? top.width : top.depth;
+  const delta = top.threejs.position[dir] - prev.threejs.position[dir];
   const overhangSize = Math.abs(delta);
   const overlap = size - overhangSize;
 
   if (overlap > 0) {
-    cutBox(topLayer, overlap, size, delta);
+    cutBox(top, overlap, size, delta);
+    const shift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
+    const ox =
+      dir === "x" ? top.threejs.position.x + shift : top.threejs.position.x;
+    const oz =
+      dir === "z" ? top.threejs.position.z + shift : top.threejs.position.z;
+    const ow = dir === "x" ? overhangSize : top.width;
+    const od = dir === "z" ? overhangSize : top.depth;
+    addOverhang(ox, oz, ow, od);
 
-    // Overhang
-    const overhangShift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
-    const overhangX =
-      direction == "x"
-        ? topLayer.threejs.position.x + overhangShift
-        : topLayer.threejs.position.x;
-    const overhangZ =
-      direction == "z"
-        ? topLayer.threejs.position.z + overhangShift
-        : topLayer.threejs.position.z;
-    const overhangWidth = direction == "x" ? overhangSize : topLayer.width;
-    const overhangDepth = direction == "z" ? overhangSize : topLayer.depth;
+    const nx = dir === "x" ? top.threejs.position.x : -10;
+    const nz = dir === "z" ? top.threejs.position.z : -10;
+    addLayer(nx, nz, top.width, top.depth, dir === "x" ? "z" : "x");
 
-    addOverhang(overhangX, overhangZ, overhangWidth, overhangDepth);
-
-    // Next layer
-    const nextX = direction == "x" ? topLayer.threejs.position.x : -10;
-    const nextZ = direction == "z" ? topLayer.threejs.position.z : -10;
-    const newWidth = topLayer.width; // New layer has the same size as the cut top layer
-    const newDepth = topLayer.depth; // New layer has the same size as the cut top layer
-    const nextDirection = direction == "x" ? "z" : "x";
-
+    playPlaceSound();
     if (scoreElement) scoreElement.innerText = `${stack.length - 1} ◆`;
     addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
   } else {
     missedTheSpot();
   }
-
 }
 
+// Function to handle game over scenario
 function missedTheSpot() {
-  const topLayer = stack[stack.length - 1];
-
-  // Turn to top layer into an overhang and let it fall down
+  const top = stack[stack.length - 1];
   addOverhang(
-    topLayer.threejs.position.x,
-    topLayer.threejs.position.z,
-    topLayer.width,
-    topLayer.depth
+    top.threejs.position.x,
+    top.threejs.position.z,
+    top.width,
+    top.depth
   );
-  world.remove(topLayer.cannonjs);
-  scene.remove(topLayer.threejs);
-
+  world.remove(top.cannonjs);
+  scene.remove(top.threejs);
   gameEnded = true;
+
   // Evaluate and update high score
-  const currentScore = Math.max(0, stack.length - 1);
+  const currentScore = Math.max(0, stack.length - 2); // Exclude foundation and first moving layer
+
   if (currentScore > highScore) {
     highScore = currentScore;
     saveHighScore(highScore);
   }
-  // Update end-game UI with current and high scores
   if (endScoreElement) endScoreElement.innerText = `${currentScore} ◆`;
   if (endHighScoreElement) endHighScoreElement.innerText = `${highScore} ◆`;
-
-  // Update restart message based on device type
   updateRestartMessage();
+  // Show results dialog when game ends
+  if (resultsElement) {
+    setTimeout(() => {
+      resultsElement.style.display = "flex";
+    }, 300);
+  }
 
-  if (resultsElement && !autopilot) resultsElement.style.display = "flex";
+  playFailSound();
 }
 
+// ----- Audio Controls -----
+const muteBtn = document.createElement("button");
+muteBtn.id = "muteBtn";
+muteBtn.textContent = "🔊";
+Object.assign(muteBtn.style, {
+  position: "absolute",
+  top: "20px",
+  left: "20px",
+  background: "rgba(255,255,255,0.7)",
+  border: "none",
+  borderRadius: "8px",
+  fontSize: "20px",
+  padding: "5px 10px",
+  cursor: "pointer",
+  zIndex: "1000",
+});
+document.body.appendChild(muteBtn);
+muteBtn.addEventListener("click", () => {
+  muted = !muted;
+  sounds.bgm.muted = muted;
+  muteBtn.textContent = muted ? "🔇" : "🔊";
+});
+
+function enableBackgroundMusic() {
+  sounds.bgm.play().catch(() => {});
+}
+["mousedown", "touchstart", "keydown"].forEach((evt) =>
+  window.addEventListener(evt, enableBackgroundMusic, { once: true })
+);
+
+function playPlaceSound() {
+  if (!muted) {
+    const s = sounds.place.cloneNode();
+    s.volume = 0.7;
+    s.play().catch(() => {});
+  }
+}
+function playFailSound() {
+  if (!muted) {
+    const s = sounds.fail.cloneNode();
+    s.volume = 0.7;
+    s.play().catch(() => {});
+  }
+}
+
+// ----- Event Handlers -----
+function eventHandler() {
+  autopilot ? startGame() : splitBlockAndAddNextOneIfOverlaps();
+}
+
+window.addEventListener("mousedown", (e) => {
+  window.focus();
+  eventHandler();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === " ") {
+    e.preventDefault();
+    eventHandler();
+  }
+  if (e.key === "r" || e.key === "R") {
+    e.preventDefault();
+    if (gameEnded || autopilot) {
+      startGame();
+    }
+  }
+}, true);
+window.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.target.closest(".twitter-link")){
+      return;
+    }
+    e.preventDefault();
+    gameEnded ? startGame() : eventHandler();
+  },
+  { passive: false }
+);
+// Close results dialog button
+const closeResultsBtn = document.getElementById("close-results");
+if (closeResultsBtn) {
+  closeResultsBtn.addEventListener("click", () => {
+    if (resultsElement) {
+      resultsElement.style.display = "none";
+    }
+  });
+}
+
+window.addEventListener("resize", () => {
+  setResponsiveBoxSize();
+  const aspect = window.innerWidth / window.innerHeight;
+  const width = 10;
+  const height = width / aspect;
+  camera.left = -width / 2;
+  camera.right = width / 2;
+  camera.top = height / 2;
+  camera.bottom = -height / 2;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (particleData?.geometry)
+    particleData.geometry.attributes.position.needsUpdate = true;
+  renderer.render(scene, camera);
+});
+
+
+
+// ----- Physics Update -----
+function updatePhysics(deltaTime) {
+  world.step(deltaTime / 1000);
+  overhangs.forEach((e) => {
+    e.threejs.position.copy(e.cannonjs.position);
+    e.threejs.quaternion.copy(e.cannonjs.quaternion);
+  });
+}
+
+// ----- Animation Loop -----
 function animation(time) {
   if (lastTime) {
-    const timePassed = time - lastTime;
-    const speed = 0.008;
-    TWEEN.update(); // 🔥 Ensures animations run
-    const topLayer = stack[stack.length - 1];
-    const previousLayer = stack[stack.length - 2];
+    const deltaTime = time - lastTime;
+    TWEEN.update();
 
-    // The top level box should move if the game has not ended AND
-    // it's either NOT in autopilot or it is in autopilot and the box did not yet reach the robot position
-    const boxShouldMove =
+    const top = stack[stack.length - 1];
+    const prev = stack[stack.length - 2];
+    const moveBox =
       !gameEnded &&
       (!autopilot ||
         (autopilot &&
-          topLayer.threejs.position[topLayer.direction] <
-          previousLayer.threejs.position[topLayer.direction] +
-          robotPrecision));
+          top.threejs.position[top.direction] <
+            prev.threejs.position[top.direction] + robotPrecision));
 
-    if (boxShouldMove) {
-      // Keep the position visible on UI and the position in the model in sync
-      topLayer.threejs.position[topLayer.direction] += speed * timePassed;
-      topLayer.cannonjs.position[topLayer.direction] += speed * timePassed;
-
-      // If the box went beyond the stack then show up the fail screen
-      if (topLayer.threejs.position[topLayer.direction] > 10) {
-        missedTheSpot();
-      }
-    } else {
-      // If it shouldn't move then is it because the autopilot reached the correct position?
-      // Because if so then next level is coming
-      if (autopilot) {
-        splitBlockAndAddNextOneIfOverlaps();
-        setRobotPrecision();
-      }
+    if (moveBox) {
+      top.threejs.position[top.direction] += 0.008 * deltaTime;
+      top.cannonjs.position[top.direction] += 0.008 * deltaTime;
+      if (top.threejs.position[top.direction] > 10) missedTheSpot();
+    } else if (autopilot) {
+      splitBlockAndAddNextOneIfOverlaps();
+      setRobotPrecision();
     }
 
-    // 4 is the initial camera height
-    if (camera.position.y < boxHeight * (stack.length - 2) + 4) {
-      camera.position.y += speed * timePassed;
-    }
+    if (camera.position.y < boxHeight * (stack.length - 2) + 4)
+      camera.position.y += 0.008 * deltaTime;
 
-    updatePhysics(timePassed);
+    updatePhysics(deltaTime);
     animateParticles(particleData);
     renderer.render(scene, camera);
   }
   lastTime = time;
 }
 
-function updatePhysics(timePassed) {
-  world.step(timePassed / 1000); // Step the physics world
 
-  // Copy coordinates from Cannon.js to Three.js
-  overhangs.forEach((element) => {
-    element.threejs.position.copy(element.cannonjs.position);
-    element.threejs.quaternion.copy(element.cannonjs.quaternion);
-  });
-}
-
-window.addEventListener("resize", () => {
-  // Adjust camera
-  // Recalculate responsive box size so new blocks follow new dimensions
-  setResponsiveBoxSize();
-  const aspect = window.innerWidth / window.innerHeight;
-  const width = 10;
-  const height = width / aspect;
-  // Recompute orthographic frustum based on new aspect
-  camera.left = -width / 2;
-  camera.right = width / 2;
-  camera.top = height / 2;
-  camera.bottom = -height / 2;
-  camera.updateProjectionMatrix();
-
-  // Update renderer size and pixel ratio for crisp rendering on high DPI
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  // If particles exist, update their geometry draw range (safe no-op otherwise)
-  if (typeof particleData !== "undefined" && particleData.particleGeometry) {
-    particleData.particleGeometry.attributes.position.needsUpdate = true;
-  }
-
-  // Re-render once to avoid a visible gap during resize
-  renderer.render(scene, camera);
-});
-
-// Make updateSceneColors available globally for theme switching
-window.updateSceneColors = updateSceneColors;
