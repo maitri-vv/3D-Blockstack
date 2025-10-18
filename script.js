@@ -72,6 +72,47 @@ function setRobotPrecision() {
   robotPrecision = Math.random() - 0.5;
 }
 
+// Create a canvas for the gradient texture
+function createGradientBackground(colors) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Set canvas size
+  canvas.width = 512;
+  canvas.height = 512;
+
+  // Create a gradient using theme colors
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, colors.top);
+  gradient.addColorStop(0.5, colors.middle);
+  gradient.addColorStop(1, colors.bottom);
+
+  // Apply gradient to canvas
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Create texture from canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+// Function to update scene colors based on current theme
+function updateSceneColors() {
+  if (!scene) return; // Scene not initialized yet
+  
+  const themeColors = window.themeManager.getCurrentThemeColors();
+  
+  // Update scene background
+  scene.background = createGradientBackground(themeColors.sceneBackground);
+  
+  // Update particle colors if they exist
+  if (particleData && particleData.particles) {
+    particleData.particles.material.color.set(themeColors.particleSpecialColor);
+  }
+  
+  // We don't update existing blocks' colors, only new ones will use the new theme
+}
+
 // Main init function
 function init() {
   autopilot = true;
@@ -100,8 +141,11 @@ function init() {
 
     particlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
+    // Get theme colors for particles
+    const themeColors = window.themeManager.getCurrentThemeColors();
+    
     const particlesMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
+      color: themeColors.particleColor,
       size: 0.05,
       transparent: true,
       opacity: 0.5,
@@ -155,35 +199,10 @@ function init() {
   camera.lookAt(0, 0, 0);
 
   scene = new THREE.Scene();
-  // Create a canvas for the gradient texture
-  function createGradientBackground() {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    // Set canvas size
-    canvas.width = 512;
-    canvas.height = 512;
-
-    // Create a gradient (from pink to light pink beige)
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#ff9f43"); // Light pink
-    gradient.addColorStop(0.5, "#feca57"); // Soft pink
-    gradient.addColorStop(1, "#f8e9a1"); // Light beige
-
-    // Apply gradient to canvas
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Create texture from canvas
-    const texture = new THREE.CanvasTexture(canvas);
-    return texture;
-  }
-
-  // Apply gradient background to scene
-  scene.background = createGradientBackground();
-  /*
-  scene.background = new THREE.Color(0x87CEEB); // Sky blue
-*/
+  
+  // Apply initial theme colors
+  const initialThemeColors = window.themeManager.getCurrentThemeColors();
+  scene.background = createGradientBackground(initialThemeColors.sceneBackground);
 
   // Foundation
   addLayer(0, 0, originalBoxSize, originalBoxSize);
@@ -239,6 +258,9 @@ function startGame() {
       scene.remove(mesh);
     }
 
+    // Restore theme colors
+    updateSceneColors();
+
     // Foundation
     addLayer(0, 0, originalBoxSize, originalBoxSize);
 
@@ -270,44 +292,16 @@ function createRingEffect(x, y, z) {
     color: 0xffd700, // Golden yellow
     transparent: true,
     opacity: 0.8,
-
   });
+  const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+  ring.position.set(x, y + boxHeight / 2, z);
+  ring.rotation.x = Math.PI / 2;
+  scene.add(ring);
 
-// ----- Three.js & Cannon.js Setup -----
-function createGradientBackground() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 512;
-  const ctx = canvas.getContext("2d");
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, "#ff9f43");
-  gradient.addColorStop(0.5, "#feca57");
-  gradient.addColorStop(1, "#f8e9a1");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  return new THREE.CanvasTexture(canvas);
-}
-
-function createParticleBackground(scene) {
-  const particleCount = 500;
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 10;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-  }
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  const material = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 0.05,
-    transparent: true,
-    opacity: 0.5,
-    depthWrite: false,
-  });
-  const particles = new THREE.Points(geometry, material);
-  particles.renderOrder = -1;
-  scene.add(particles);
-  return particles;
+  // Remove ring after animation
+  setTimeout(() => {
+    scene.remove(ring);
+  }, 600);
 }
 
 function createParticles() {
@@ -345,17 +339,16 @@ function animateParticles(particleData) {
 // Initialize Particles
 const particleData = createParticles();
 
-// Function to add an overhang that falls down
-function addOverhang(x, z, width, depth) {
-  const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
-  const overhang = generateBox(x, y, z, width, depth, true);
-  overhangs.push(overhang);
-}
-
 // Helper function to generate a box (both in ThreeJS and CannonJS)
 function generateBox(x, y, z, width, depth, falls) {
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
-  const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100%, 50%)`);
+  
+  // Get current theme colors for block generation
+  const themeColors = window.themeManager.getCurrentThemeColors();
+  const hueBase = themeColors.blockHueBase || 30;
+  
+  // Create color with theme-based hue
+  const color = new THREE.Color(`hsl(${hueBase + stack.length * 4}, 100%, 50%)`);
   const material = new THREE.MeshLambertMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(x, y, z);
@@ -408,40 +401,7 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.addShape(shape);
 }
 
-// Event listeners for mouse, touch, and keyboard
-window.addEventListener("mousedown", eventHandler);
 
-window.addEventListener("keydown", function (event) {
-  if (event.key == " ") {
-    event.preventDefault();
-    eventHandler();
-    return;
-  }
-  if (event.key == "R" || event.key == "r") {
-    event.preventDefault();
-    startGame();
-    return;
-  }
-});
-
-// Fixed touch handler for mobile: restart game when tapped after game over
-window.addEventListener("touchstart", function (event) {
-  event.preventDefault(); // Prevent double-firing and unwanted scrolling
-
-  if (gameEnded) {
-    // If game is over, restart on tap
-    startGame();
-  } else {
-    // During gameplay, handle normal touch
-    eventHandler();
-  }
-}, { passive: false });
-
-// Unified event handler for both click and touch
-function eventHandler() {
-  if (autopilot) startGame();
-  else splitBlockAndAddNextOneIfOverlaps();
-}
 
 // Function to split the block and add the next one if it overlaps
 function splitBlockAndAddNextOneIfOverlaps() {
@@ -497,10 +457,15 @@ function missedTheSpot() {
     highScore = currentScore;
     saveHighScore(highScore);
   }
-  if (endScoreElement) endScoreElement.innerText = `${score} ◆`;
+  if (endScoreElement) endScoreElement.innerText = `${currentScore} ◆`;
   if (endHighScoreElement) endHighScoreElement.innerText = `${highScore} ◆`;
   updateRestartMessage();
-  if (resultsElement && !autopilot) resultsElement.style.display = "flex";
+  // Show results dialog when game ends
+  if (resultsElement) {
+    setTimeout(() => {
+      resultsElement.style.display = "flex";
+    }, 300);
+  }
 
   playFailSound();
 }
@@ -554,21 +519,28 @@ function playFailSound() {
 function eventHandler() {
   autopilot ? startGame() : splitBlockAndAddNextOneIfOverlaps();
 }
-window.addEventListener("mousedown", eventHandler);
-window.addEventListener("keydown", (e) => {
+
+window.addEventListener("mousedown", (e) => {
+  window.focus();
+  eventHandler();
+});
+
+document.addEventListener("keydown", (e) => {
   if (e.key === " ") {
     e.preventDefault();
     eventHandler();
   }
   if (e.key === "r" || e.key === "R") {
     e.preventDefault();
-    startGame();
+    if (gameEnded || autopilot) {
+      startGame();
+    }
   }
-});
+}, true);
 window.addEventListener(
   "touchstart",
   (e) => {
-  if (e.target.closest(".twitter-link")){
+    if (e.target.closest(".twitter-link")){
       return;
     }
     e.preventDefault();
@@ -576,6 +548,16 @@ window.addEventListener(
   },
   { passive: false }
 );
+// Close results dialog button
+const closeResultsBtn = document.getElementById("close-results");
+if (closeResultsBtn) {
+  closeResultsBtn.addEventListener("click", () => {
+    if (resultsElement) {
+      resultsElement.style.display = "none";
+    }
+  });
+}
+
 window.addEventListener("resize", () => {
   setResponsiveBoxSize();
   const aspect = window.innerWidth / window.innerHeight;
@@ -593,27 +575,7 @@ window.addEventListener("resize", () => {
   renderer.render(scene, camera);
 });
 
-// ----- Game Start / Restart -----
-function startGame() {
-  autopilot = false;
-  gameEnded = false;
-  lastTime = 0;
-  stack = [];
-  overhangs = [];
-  setResponsiveBoxSize();
-  if (instructionsElement) instructionsElement.style.display = "none";
-  if (resultsElement) resultsElement.style.display = "none";
-  if (scoreElement) scoreElement.innerText = 0;
 
-  while (world.bodies.length > 0) world.remove(world.bodies[0]);
-  while (scene.children.find((c) => c.type === "Mesh"))
-    scene.remove(scene.children.find((c) => c.type === "Mesh"));
-
-  addLayer(0, 0, originalBoxSize, originalBoxSize);
-  addLayer(-10, 0, originalBoxSize, originalBoxSize, "x");
-  camera.position.set(4, 4, 4);
-  camera.lookAt(0, 0, 0);
-}
 
 // ----- Physics Update -----
 function updatePhysics(deltaTime) {
@@ -658,51 +620,4 @@ function animation(time) {
   lastTime = time;
 }
 
-// Function to update physics world and sync with Three.js
-function updatePhysics(timePassed) {
-  world.step(timePassed / 1000); // Step the physics world
 
-  world = new CANNON.World();
-  world.gravity.set(0, -10, 0);
-  world.broadphase = new CANNON.NaiveBroadphase();
-  world.solver.iterations = 40;
-
-  const aspect = window.innerWidth / window.innerHeight;
-  const width = 10;
-  const height = width / aspect;
-
-  camera = new THREE.OrthographicCamera(
-    -width / 2,
-    width / 2,
-    height / 2,
-    -height / 2,
-    0,
-    100
-  );
-  camera.position.set(3, 3, 3);
-  camera.lookAt(0, 0, 0);
-
-  scene = new THREE.Scene();
-  scene.background = createGradientBackground();
-
-  addLayer(0, 0, originalBoxSize, originalBoxSize);
-  addLayer(-10, 0, originalBoxSize, originalBoxSize, "x");
-
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  dirLight.position.set(10, 20, 0);
-  scene.add(dirLight);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setAnimationLoop(animation);
-  document.body.appendChild(renderer.domElement);
-
-  particleData = createParticles();
-  createParticleBackground(scene);
-}
-
-// ----- Start -----
-init();

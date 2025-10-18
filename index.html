@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Stacking Game</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="themes.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="favicon.ico" />
 </head>
@@ -24,6 +25,7 @@
   </div>
 
   <div id="results">
+    <button id="close-results" class="close-btn" title="Close">&times;</button>
     <div class="content">
       <div class="game-over-title">
         <svg class="miss-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -87,12 +89,21 @@
 
   <div id="score">0</div>
 
+  <!-- Theme Buttons -->
+  <div id="theme-controls" style="position: absolute; top: 80px; right: 20px; z-index: 1000; display: flex; gap: 10px; flex-direction: column;">
+    <button id="theme-default" class="theme-btn active" title="Default Theme">🌅</button>
+    <button id="theme-night" class="theme-btn" title="Night Theme">🌙</button>
+    <button id="theme-sunset" class="theme-btn" title="Sunset Theme">🌇</button>
+  </div>
+
   <!-- Include Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 
   <!-- Include Cannon.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+  <!-- Theme Management -->
+  <script src="themes.js"></script>
   <!-- Game Script -->
   <script src="script.js"></script>
 
