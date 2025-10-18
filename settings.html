@@ -1,0 +1,34 @@
+<!-- settings.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - 3D Blockstack</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-container">
+    <h2>Settings</h2>
+
+    <label>
+      Username:
+      <input type="text" id="username" placeholder="Enter username">
+    </label>
+
+    <label class="toggle-label">
+      <input type="checkbox" id="darkMode">
+      Enable Dark Mode
+    </label>
+
+    <label class="toggle-label">
+      <input type="checkbox" id="emailNotifications">
+      Email Notifications
+    </label>
+
+    <button id="saveBtn">Save Settings</button>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>
