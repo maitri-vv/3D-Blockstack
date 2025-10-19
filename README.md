@@ -176,17 +176,14 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 👨‍💻 Author
+## 📄 We're Still Playing! Shoutout to the Amazing Contributors Who Secured the Win.
 
-**Your Name** - *Full-Stack Developer*
+<a href="https://github.com/maitri-vv/3S-Blockstack/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=maitri-vv/3D-Blockstack" />
+</a>
 
-- 🌐 **Portfolio**: [your-portfolio.com](https://your-portfolio.com)
-- 🐦 **Twitter**: [@your-twitter](https://twitter.com/your-twitter)
-- 💼 **LinkedIn**: [your-linkedin](https://linkedin.com/in/your-linkedin)
-- 📧 **Email**: your.email@example.com
 
 ---
-
 ## ⭐ Show Your Support
 
 If you enjoyed this game, please give it a ⭐ on GitHub!
