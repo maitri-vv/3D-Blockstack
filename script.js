@@ -545,9 +545,17 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener(
   "touchstart",
   (e) => {
-    if (e.target.closest(".twitter-link")){
+    if (
+      e.target.closest(".twitter-link") ||  // The Twitter link
+      e.target.closest("#muteBtn") ||       // The mute button
+      e.target.closest("#theme-controls") || // The theme buttons container
+      e.target.closest("#close-results")     
+    ) {
+      // If it was, do nothing and let the browser handle the 'click' event
       return;
     }
+
+    // Otherwise, it's a tap for the game
     e.preventDefault();
     gameEnded ? startGame() : eventHandler();
   },
