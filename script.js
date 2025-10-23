@@ -430,8 +430,13 @@ function splitBlockAndAddNextOneIfOverlaps() {
     addLayer(nx, nz, top.width, top.depth, dir === "x" ? "z" : "x");
 
     playPlaceSound();
-    if (scoreElement) scoreElement.innerText = `${stack.length - 1} ◆`;
-    addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+    if (scoreElement) {
+      scoreElement.innerText = stack.length - 2;
+      scoreElement.classList.add("score-updated");
+      setTimeout(() => {
+        scoreElement.classList.remove("score-updated");
+      }, 400); // Remove class after animation duration
+    }
   } else {
     missedTheSpot();
   }
@@ -619,5 +624,3 @@ function animation(time) {
   }
   lastTime = time;
 }
-
-
