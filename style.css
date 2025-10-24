@@ -343,6 +343,37 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+#muteBtn {
+  position: absolute;
+  top: clamp(8px, 2.5vh, 20px);
+  left: clamp(12px, 2.5vw, 24px); /* Changed from 'right' */
+  font-family: "Montserrat", sans-serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 900;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Added to center the icon */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: white; /* Added to make sure icon is visible */
+  border: none; /* Added from JS */
+  cursor: pointer; /* Added from JS */
+  line-height: 1; /* Helps center the icon */
+}
+
+/* Optional: Add a matching hover effect */
+#muteBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
 /* Add diamond icon after score */
 #score::after {
   content: '◆';
