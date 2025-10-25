@@ -26,7 +26,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/3D-Blockstack.git
+   git clone https://github.com/maitri-vv/3D-Blockstack.git
    cd 3D-Blockstack
    ```
 
