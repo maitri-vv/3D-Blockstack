@@ -5,13 +5,17 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Made with Three.js](https://img.shields.io/badge/Made%20with-Three.js-orange.svg)](https://threejs.org/)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-blue.svg)](CONTRIBUTING.md)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-brightgreen.svg)](https://your-username.github.io/3D-Blockstack/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Play%20Now-brightgreen.svg)](https://3d-blockstack.vercel.app/)
 
 ---
 
 ## 🎮 Demo
 
-![Game Screenshot](screenshot.png)
+## Light Theme
+![Game Screenshot](preview/Light.png)
+## Dark Theme
+![Game Screenshot](preview/Dark.png)
+
 *Stack blocks with precision and watch them fall with realistic physics!*
 
 ---
@@ -119,7 +123,7 @@
 I welcome contributions! Here's how you can help:
 
 ### 🐛 Bug Reports
-- Use the [GitHub Issues](https://github.com/your-username/3D-Blockstack/issues) tab
+- Use the [GitHub Issues](https://github.com/maitri-vv/3D-Blockstack/issues) tab
 - Include steps to reproduce the issue
 - Specify your browser and device type
 
@@ -176,12 +180,24 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
+## 👨‍💻 Author & Maintainer
+
+**[Maitri V V](https://github.com/maitri-vv)**
+🎮 Developer & Designer of *3D Blockstack*
+
+📫 **Reach me at:**
+
+* GitHub: [@maitri-vv](https://github.com/maitri-vv)
+* LinkedIn: [maitrivaghasiya](https://linkedin.com/in/maitrivaghasiya)
+* Twitter: [maitrivv](https://twitter.com/maitrivv)
+
+---
+
 ## 📄 We're Still Playing! Shoutout to the Amazing Contributors Who Secured the Win.
 
 <a href="https://github.com/maitri-vv/3S-Blockstack/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=maitri-vv/3D-Blockstack" />
+<img src="https://contrib.rocks/image?repo=maitri-vv/3D-Blockstack" />
 </a>
-
 
 ---
 ## ⭐ Show Your Support
