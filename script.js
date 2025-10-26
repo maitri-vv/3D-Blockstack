@@ -479,18 +479,6 @@ function missedTheSpot() {
 const muteBtn = document.createElement("button");
 muteBtn.id = "muteBtn";
 muteBtn.textContent = "🔊";
-Object.assign(muteBtn.style, {
-  position: "absolute",
-  top: "20px",
-  left: "20px",
-  background: "rgba(255,255,255,0.7)",
-  border: "none",
-  borderRadius: "8px",
-  fontSize: "20px",
-  padding: "5px 10px",
-  cursor: "pointer",
-  zIndex: "1000",
-});
 document.body.appendChild(muteBtn);
 muteBtn.addEventListener("click", () => {
   muted = !muted;
