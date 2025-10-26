@@ -53,7 +53,7 @@ const themeButtons = {
 function initThemes() {
   // Load saved theme from localStorage
   loadTheme();
-  
+
   // Add event listeners to theme buttons
   for (const theme of AVAILABLE_THEMES) {
     const button = themeButtons[theme];
@@ -91,13 +91,13 @@ function setTheme(theme, save = true) {
 
   // Update current theme
   currentTheme = theme;
-  
+
   // Update body class
   document.body.classList.remove(...AVAILABLE_THEMES.map(t => `theme-${t}`));
   if (theme !== 'default') {
     document.body.classList.add(`theme-${theme}`);
   }
-  
+
   // Update active button state
   for (const t of AVAILABLE_THEMES) {
     const button = themeButtons[t];
@@ -105,12 +105,12 @@ function setTheme(theme, save = true) {
       button.classList.toggle('active', t === theme);
     }
   }
-  
+
   // Update scene colors if the game has started
   if (typeof updateSceneColors === 'function') {
     updateSceneColors();
   }
-  
+
   // Save theme preference if requested
   if (save) {
     saveTheme(theme);

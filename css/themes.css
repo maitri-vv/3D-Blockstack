@@ -183,12 +183,14 @@ body {
 /* Theme Controls Container */
 #theme-controls {
   position: absolute;
-  top: clamp(80px, 12vh, 120px); /* Position below the score */
-  right: clamp(12px, 2.5vw, 24px); /* Align with score's right edge */
+  top: clamp(120px, 12vh, 120px);
+  /* Position below the score */
+  right: clamp(12px, 2.5vw, 24px);
+  /* Align with score's right edge */
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 @media (max-width: 600px) {
@@ -202,7 +204,7 @@ body {
   #theme-selector {
     right: clamp(60px, 12vw, 140px);
   }
-  
+
   .theme-button {
     width: 32px;
     height: 32px;
@@ -217,7 +219,7 @@ body {
     gap: 10px;
     padding: 6px 10px;
   }
-  
+
   .theme-button {
     width: 28px;
     height: 28px;

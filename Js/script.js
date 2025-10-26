@@ -61,7 +61,7 @@ function loadHighScore() {
 function saveHighScore(value) {
   try {
     localStorage.setItem(HIGH_SCORE_KEY, String(Math.max(0, value | 0)));
-  } catch (_) {}
+  } catch (_) { }
 }
 
 // Initialize the game
@@ -99,17 +99,17 @@ function createGradientBackground(colors) {
 // Function to update scene colors based on current theme
 function updateSceneColors() {
   if (!scene) return; // Scene not initialized yet
-  
+
   const themeColors = window.themeManager.getCurrentThemeColors();
-  
+
   // Update scene background
   scene.background = createGradientBackground(themeColors.sceneBackground);
-  
+
   // Update particle colors if they exist
   if (particleData && particleData.particles) {
     particleData.particles.material.color.set(themeColors.particleSpecialColor);
   }
-  
+
   // We don't update existing blocks' colors, only new ones will use the new theme
 }
 
@@ -143,7 +143,7 @@ function init() {
 
     // Get theme colors for particles
     const themeColors = window.themeManager.getCurrentThemeColors();
-    
+
     const particlesMaterial = new THREE.PointsMaterial({
       color: themeColors.particleColor,
       size: 0.05,
@@ -199,7 +199,7 @@ function init() {
   camera.lookAt(0, 0, 0);
 
   scene = new THREE.Scene();
-  
+
   // Apply initial theme colors
   const initialThemeColors = window.themeManager.getCurrentThemeColors();
   scene.background = createGradientBackground(initialThemeColors.sceneBackground);
@@ -342,11 +342,11 @@ const particleData = createParticles();
 // Helper function to generate a box (both in ThreeJS and CannonJS)
 function generateBox(x, y, z, width, depth, falls) {
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
-  
+
   // Get current theme colors for block generation
   const themeColors = window.themeManager.getCurrentThemeColors();
   const hueBase = themeColors.blockHueBase || 30;
-  
+
   // Create color with theme-based hue
   const color = new THREE.Color(`hsl(${hueBase + stack.length * 4}, 100%, 50%)`);
   const material = new THREE.MeshLambertMaterial({ color });
@@ -400,8 +400,6 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.cannonjs.shapes = [];
   topLayer.cannonjs.addShape(shape);
 }
-
-
 
 // Function to split the block and add the next one if it overlaps
 function splitBlockAndAddNextOneIfOverlaps() {
@@ -487,7 +485,7 @@ muteBtn.addEventListener("click", () => {
 });
 
 function enableBackgroundMusic() {
-  sounds.bgm.play().catch(() => {});
+  sounds.bgm.play().catch(() => { });
 }
 ["mousedown", "touchstart", "keydown"].forEach((evt) =>
   window.addEventListener(evt, enableBackgroundMusic, { once: true })
@@ -497,14 +495,14 @@ function playPlaceSound() {
   if (!muted) {
     const s = sounds.place.cloneNode();
     s.volume = 0.7;
-    s.play().catch(() => {});
+    s.play().catch(() => { });
   }
 }
 function playFailSound() {
   if (!muted) {
     const s = sounds.fail.cloneNode();
     s.volume = 0.7;
-    s.play().catch(() => {});
+    s.play().catch(() => { });
   }
 }
 
@@ -537,7 +535,7 @@ window.addEventListener(
       e.target.closest(".twitter-link") ||  // The Twitter link
       e.target.closest("#muteBtn") ||       // The mute button
       e.target.closest("#theme-controls") || // The theme buttons container
-      e.target.closest("#close-results")     
+      e.target.closest("#close-results")
     ) {
       // If it was, do nothing and let the browser handle the 'click' event
       return;
@@ -549,6 +547,7 @@ window.addEventListener(
   },
   { passive: false }
 );
+
 // Close results dialog button
 const closeResultsBtn = document.getElementById("close-results");
 if (closeResultsBtn) {
@@ -576,8 +575,6 @@ window.addEventListener("resize", () => {
   renderer.render(scene, camera);
 });
 
-
-
 // ----- Physics Update -----
 function updatePhysics(deltaTime) {
   world.step(deltaTime / 1000);
@@ -600,7 +597,7 @@ function animation(time) {
       (!autopilot ||
         (autopilot &&
           top.threejs.position[top.direction] <
-            prev.threejs.position[top.direction] + robotPrecision));
+          prev.threejs.position[top.direction] + robotPrecision));
 
     if (moveBox) {
       top.threejs.position[top.direction] += 0.008 * deltaTime;
