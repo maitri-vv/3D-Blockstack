@@ -27,6 +27,81 @@
     </div>
   </div>
 
+  <!-- Instructions/Controls Menu -->
+  <div id="instructions-menu">
+    <button id="close-instructions" class="close-btn" title="Close">&times;</button>
+    <div class="content">
+      <h2>Instructions & Controls</h2>
+      
+      <!-- Game Instructions Section -->
+      <div class="menu-section">
+        <h3>🎮 How to Play</h3>
+        <div class="instruction-content">
+          <p>Stack blocks on top of each other with perfect timing!</p>
+          <ul>
+            <li>Click, tap, or press <kbd>Space</kbd> when a block is above the stack</li>
+            <li>Build your tower as high as possible</li>
+            <li>Try to reach the <span class="blue-text">blue colored blocks</span> for extra points</li>
+            <li>Each successful stack increases your score</li>
+            <li>Miss a block and the game ends!</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Controls Section -->
+      <div class="menu-section">
+        <h3>⌨️ Controls</h3>
+        <div class="controls-grid">
+          <div class="control-item">
+            <kbd>Space</kbd>
+            <span>Drop / Stack Block</span>
+          </div>
+          <div class="control-item">
+            <kbd>R</kbd>
+            <span>Restart Game</span>
+          </div>
+          <div class="control-item">
+            <kbd>M</kbd>
+            <span>Mute / Unmute</span>
+          </div>
+          <div class="control-item">
+            <kbd>H</kbd>
+            <span>Toggle This Menu</span>
+          </div>
+        </div>
+        <p class="controls-note">Also works with mouse clicks and touch taps!</p>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="menu-section">
+        <h3>⚙️ Settings</h3>
+        
+        <!-- Theme Selection -->
+        <div class="setting-group">
+          <label>Theme:</label>
+          <div class="theme-buttons">
+            <button id="menu-theme-default" class="theme-btn" title="Default Theme">🌅</button>
+            <button id="menu-theme-night" class="theme-btn" title="Night Theme">🌙</button>
+            <button id="menu-theme-sunset" class="theme-btn" title="Sunset Theme">🌇</button>
+          </div>
+        </div>
+
+        <!-- Audio Controls -->
+        <div class="setting-group">
+          <label>Audio:</label>
+          <button id="menu-mute-btn" class="audio-btn">
+            <span class="audio-icon">🔊</span>
+            <span class="audio-text">Sound On</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-footer">
+        <p>Press <kbd>H</kbd> or click anywhere to close</p>
+      </div>
+    </div>
+  </div>
+
   <!-- results -->
   <div id="results">
     <button id="close-results" class="close-btn" title="Close">&times;</button>
@@ -94,11 +169,9 @@
   <!-- score box -->
   <div id="score">0</div>
 
-  <!-- Theme Buttons -->
-  <div id="theme-controls">
-    <button id="theme-default" class="theme-btn active" title="Default Theme">🌅</button>
-    <button id="theme-night" class="theme-btn" title="Night Theme">🌙</button>
-    <button id="theme-sunset" class="theme-btn" title="Sunset Theme">🌇</button>
+  <!-- Instructions Button -->
+  <div id="instructions-button">
+    <button id="open-instructions" class="instructions-btn" title="Instructions & Controls">❓</button>
   </div>
 
   <!-- Include Three.js -->

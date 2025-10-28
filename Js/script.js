@@ -19,6 +19,9 @@ const resultsElement = document.getElementById("results");
 const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
 const restartTextElement = document.getElementById("restart-text");
+const instructionsMenuElement = document.getElementById("instructions-menu");
+const openInstructionsBtn = document.getElementById("open-instructions");
+const closeInstructionsBtn = document.getElementById("close-instructions");
 
 // High score
 const HIGH_SCORE_KEY = "stackerHighScore";
@@ -66,6 +69,15 @@ function saveHighScore(value) {
 
 // Initialize the game
 init();
+
+// Initialize menu state after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Update menu theme buttons to match current theme
+  updateMenuThemeButtons();
+  
+  // Update menu audio button to match current mute state
+  updateMenuAudioButton();
+});
 
 // Determines how precise the game is on autopilot
 function setRobotPrecision() {
@@ -473,6 +485,93 @@ function missedTheSpot() {
   playFailSound();
 }
 
+// ----- Instructions Menu -----
+function toggleInstructionsMenu() {
+  if (instructionsMenuElement) {
+    const isHidden = instructionsMenuElement.style.display === "none" || !instructionsMenuElement.style.display;
+    instructionsMenuElement.style.display = isHidden ? "flex" : "none";
+  }
+}
+
+// Open instructions menu button
+if (openInstructionsBtn) {
+  openInstructionsBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleInstructionsMenu();
+  });
+}
+
+// Close instructions menu button
+if (closeInstructionsBtn) {
+  closeInstructionsBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (instructionsMenuElement) {
+      instructionsMenuElement.style.display = "none";
+    }
+  });
+}
+
+// Menu theme buttons
+const menuThemeButtons = {
+  default: document.getElementById("menu-theme-default"),
+  night: document.getElementById("menu-theme-night"),
+  sunset: document.getElementById("menu-theme-sunset")
+};
+
+// Menu audio button
+const menuMuteBtn = document.getElementById("menu-mute-btn");
+const menuAudioIcon = menuMuteBtn?.querySelector(".audio-icon");
+const menuAudioText = menuMuteBtn?.querySelector(".audio-text");
+
+// Update menu theme buttons to match current theme
+function updateMenuThemeButtons() {
+  const currentTheme = window.themeManager?.getCurrentTheme() || "default";
+  for (const [theme, button] of Object.entries(menuThemeButtons)) {
+    if (button) {
+      button.classList.toggle("active", theme === currentTheme);
+    }
+  }
+}
+
+// Update menu audio button to match current mute state
+function updateMenuAudioButton() {
+  if (menuAudioIcon && menuAudioText) {
+    menuAudioIcon.textContent = muted ? "🔇" : "🔊";
+    menuAudioText.textContent = muted ? "Sound Off" : "Sound On";
+  }
+}
+
+// Add event listeners for menu theme buttons
+for (const [theme, button] of Object.entries(menuThemeButtons)) {
+  if (button) {
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.themeManager) {
+        window.themeManager.setTheme(theme);
+        updateMenuThemeButtons();
+      }
+    });
+  }
+}
+
+// Add event listener for menu audio button
+if (menuMuteBtn) {
+  menuMuteBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    muted = !muted;
+    sounds.bgm.muted = muted;
+    updateMenuAudioButton();
+    // Also update the main mute button
+    if (muteBtn) {
+      muteBtn.textContent = muted ? "🔇" : "🔊";
+    }
+  });
+}
+
 // ----- Audio Controls -----
 const muteBtn = document.createElement("button");
 muteBtn.id = "muteBtn";
@@ -527,6 +626,16 @@ document.addEventListener("keydown", (e) => {
       startGame();
     }
   }
+  if (e.key === "m" || e.key === "M") {
+    e.preventDefault();
+    muted = !muted;
+    sounds.bgm.muted = muted;
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+  }
+  if (e.key === "h" || e.key === "H") {
+    e.preventDefault();
+    toggleInstructionsMenu();
+  }
 }, true);
 window.addEventListener(
   "touchstart",
@@ -534,8 +643,10 @@ window.addEventListener(
     if (
       e.target.closest(".twitter-link") ||  // The Twitter link
       e.target.closest("#muteBtn") ||       // The mute button
-      e.target.closest("#theme-controls") || // The theme buttons container
-      e.target.closest("#close-results")
+      e.target.closest("#instructions-menu") || // The instructions menu
+      e.target.closest("#open-instructions") || // The instructions button
+      e.target.closest("#close-results") || // The close results button
+      e.target.closest("#close-instructions") // The close instructions button
     ) {
       // If it was, do nothing and let the browser handle the 'click' event
       return;
