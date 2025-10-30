@@ -226,3 +226,73 @@ body {
     border-width: 2px;
   }
 }
+
+/* Theme button tooltips */
+
+.theme-btn {
+  position: relative;
+}
+
+/* Tooltip text */
+.theme-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  right: 120%;
+  transform: translateY(-50%) translateX(-8px);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 2000;
+}
+
+/* Tooltip arrow */
+.theme-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 110%;
+  transform: translateY(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* Show tooltip on hover */
+.theme-btn:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(-12px);
+}
+
+.theme-btn:hover::before {
+  opacity: 1;
+}
+
+/* Theme-aware tooltip colors */
+body.theme-sunset .theme-btn::after,
+body.theme-default .theme-btn::after {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+}
+
+body.theme-night .theme-btn::after {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* White tooltip arrow for night theme */
+body.theme-night .theme-btn::before {
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+}
