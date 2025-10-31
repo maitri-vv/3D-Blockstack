@@ -412,6 +412,10 @@ function splitBlockAndAddNextOneIfOverlaps() {
   const overhangSize = Math.abs(delta);
   const overlap = size - overhangSize;
 
+  const overlapPercent = Math.max(0,Math.round((overlap / size) * 100));
+  showOverlapPopup(overlapPercent);
+
+
   if (overlap > 0) {
     cutBox(top, overlap, size, delta);
     const shift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
@@ -439,6 +443,29 @@ function splitBlockAndAddNextOneIfOverlaps() {
     missedTheSpot();
   }
 }
+
+// Function to display overlap percentage
+function showOverlapPopup(percent) {
+  const popup = document.getElementById("overlap-popup");
+  popup.textContent = `${percent}%`;
+
+  // Color feedback
+  if (percent >= 90) {
+    popup.style.background = "rgba(0, 128, 0, 0.8)"; // green
+  } else if (percent >= 60) {
+    popup.style.background = "rgba(255, 165, 0, 0.8)"; // orange
+  } else {
+    popup.style.background = "rgba(178, 34, 34, 0.8)"; // red
+  }
+
+  popup.classList.add("show");
+
+  setTimeout(() => {
+    popup.classList.remove("show");
+  }, 1000);
+}
+
+
 
 // Function to handle game over scenario
 function missedTheSpot() {
