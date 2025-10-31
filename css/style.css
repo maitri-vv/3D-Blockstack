@@ -412,6 +412,32 @@ body {
   animation: score-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* Overlop feedback styles */
+#overlap-popup {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  display: none;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#overlap-popup.show {
+  display: block;
+  opacity: 1;
+  transform: translateX(-50%) scale(1.05);
+}
+
+
+
 #youtube {
   position: absolute;
   bottom: 10px;
