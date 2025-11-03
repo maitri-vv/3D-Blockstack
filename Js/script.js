@@ -4,8 +4,8 @@ const JSONBIN_MASTER_KEY = '$2a$10$81jSjo89/sxzUXgZGy0WrOIBUQ8kHrB3QV5nUAVNkcnMR
 
 // Paste your Bin ID here (e.g., 65f2d5a1dc74653a992e59e5)
 const JSONBIN_ID = '69086287ae596e708f411b5a'; 
-const LEADERBOARD_API_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
-
+const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycbyrkK8ESRAmHXNTsItFQkK6JOqzu6hrHlUT7iuuhs-Hr8xl2Q0r6PqoaCui1iRLx4VX_A/exec"; 
+// Remove the JSONBIN_MASTER_KEY and JSONBIN_ID variables.
 // ... (rest of the existing variables)
 window.focus(); // Capture keys right away (by default focus is on editor)
 
@@ -616,63 +616,57 @@ window.addEventListener("resize", () => {
 
 // --- New Leaderboard API Functions ---
 
+// --- Google Apps Script Leaderboard API Functions ---
+
 async function submitScore() {
     const finalScore = stack.length - 1;
     const name = playerNameInput.value.trim() || "Anonymous";
 
+    // Simple check to ensure the API URL is set
+    if (!LEADERBOARD_API_URL.startsWith("https://")) {
+        submitMessageElement.innerText = "Error: LEADERBOARD_API_URL not configured.";
+        return;
+    }
+    
     if (finalScore <= 0) {
         submitMessageElement.innerText = "Score must be greater than 0 to submit!";
         return;
     }
     
     submitScoreBtn.disabled = true;
-    submitMessageElement.innerText = "Submitting score and updating leaderboard...";
+    submitMessageElement.innerText = "Submitting score...";
 
     try {
-        // 1. GET current leaderboard (using Master Key)
-        const getResponse = await fetch(LEADERBOARD_API_URL, {
-            method: 'GET',
-            headers: {
-                'X-Master-Key': JSONBIN_MASTER_KEY,
-                'X-Bin-Meta': 'false'
-            }
-        });
-        const currentData = await getResponse.json();
-        let currentLeaderboard = currentData.leaderboard || []; // Access the array
+        const payload = {
+            name: name,
+            score: finalScore
+        };
         
-        // 2. Add new score
-        const newEntry = { name: name, score: finalScore, timestamp: new Date().toISOString() };
-        currentLeaderboard.push(newEntry);
-
-        // 3. Keep only the top 100 scores (optional limit) and sort
-        currentLeaderboard.sort((a, b) => b.score - a.score);
-        currentLeaderboard = currentLeaderboard.slice(0, 100);
-
-        // 4. PUT (overwrite) the entire bin with the updated leaderboard (using Master Key)
-        const putResponse = await fetch(LEADERBOARD_API_URL, {
-            method: 'PUT',
+        const response = await fetch(LEADERBOARD_API_URL, {
+            method: 'POST',
+            mode: 'cors',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': JSONBIN_MASTER_KEY
+                'Content-Type': 'application/json'
             },
-            // Note: The body must contain the 'leaderboard' key nested under 'record'
-            body: JSON.stringify({ "leaderboard": currentLeaderboard }) 
+            body: JSON.stringify(payload)
         });
 
-        if (putResponse.ok) {
+        // The API returns JSON, so we expect a parseable response
+        const result = await response.json();
+        
+        if (result.success) {
             submitMessageElement.innerText = `Score submitted! ${name}: ${finalScore}`;
         } else {
-            const errorText = await putResponse.text(); 
-            submitMessageElement.innerText = `Submission failed! Server status: ${putResponse.status}`;
-            console.error("JSONbin PUT error:", errorText);
+            submitMessageElement.innerText = `Submission Failed: ${result.message || 'Unknown server error.'}`;
         }
         
         // Refresh the leaderboard to show the new score
         fetchLeaderboard(); 
 
     } catch (error) {
-        submitMessageElement.innerText = "Critical Error: Could not update the leaderboard. Check JSONbin keys.";
-        console.error('Error during score submission process:', error);
+        // This catches CORS and Network errors
+        submitMessageElement.innerText = "Critical Network Error. Please ensure the game is running on Vercel/GitHub Pages or check Apps Script deployment access.";
+        console.error('Error submitting score:', error);
     } finally {
         submitScoreBtn.disabled = false;
     }
@@ -682,34 +676,27 @@ async function submitScore() {
 async function fetchLeaderboard() {
     // Clear previous leaderboard results
     leaderboardTableBody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
-
+    
+    if (!LEADERBOARD_API_URL.startsWith("https://")) {
+        leaderboardTableBody.innerHTML = '<tr><td colspan="3">API URL not configured.</td></tr>';
+        return;
+    }
+    
     try {
-        // 1. Fetch the entire leaderboard JSON (using Master Key)
-        const response = await fetch(LEADERBOARD_API_URL, {
+        // We append the parameter to trigger the doGet function in Apps Script
+        const response = await fetch(LEADERBOARD_API_URL + "?action=get_leaderboard", {
             method: 'GET',
-            headers: {
-                // We use the Master Key for both read and write
-                'X-Master-Key': JSONBIN_MASTER_KEY, 
-                'X-Bin-Meta': 'false' // Fetch only the data, not metadata
-            }
+            mode: 'cors'
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        
         const data = await response.json();
-        const leaderboard = data.leaderboard; // Access the array inside the 'record.leaderboard' key
-
+        
         leaderboardTableBody.innerHTML = ''; // Clear 'Loading' message
         
-        if (leaderboard && leaderboard.length > 0) {
-            // Sort by score (descending) and display the top 10
-            leaderboard.sort((a, b) => b.score - a.score);
-
-            leaderboard.slice(0, 10).forEach((entry, index) => {
+        if (data.leaderboard && data.leaderboard.length > 0) {
+            data.leaderboard.forEach(entry => {
                 const row = leaderboardTableBody.insertRow();
-                row.insertCell().innerText = index + 1; // Rank
+                row.insertCell().innerText = entry.rank;
                 row.insertCell().innerText = entry.name;
                 row.insertCell().innerText = entry.score;
             });
@@ -718,7 +705,8 @@ async function fetchLeaderboard() {
         }
 
     } catch (error) {
-        leaderboardTableBody.innerHTML = '<tr><td colspan="3">Error loading leaderboard (JSONbin fetch failed).</td></tr>';
+        // This handles the SyntaxError (HTML response) and Network errors
+        leaderboardTableBody.innerHTML = '<tr><td colspan="3">Error loading leaderboard. Please check script deployment.</td></tr>';
         console.error('Error fetching leaderboard:', error);
     }
 }
