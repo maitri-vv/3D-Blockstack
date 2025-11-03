@@ -618,11 +618,13 @@ window.addEventListener("resize", () => {
 
 // --- Google Apps Script Leaderboard API Functions ---
 
+// --- Client-side Score Submission using GET Request (Js/script.js) ---
+
 async function submitScore() {
     const finalScore = stack.length - 1;
     const name = playerNameInput.value.trim() || "Anonymous";
 
-    // Simple check to ensure the API URL is set
+    // 1. Basic checks
     if (!LEADERBOARD_API_URL.startsWith("https://")) {
         submitMessageElement.innerText = "Error: LEADERBOARD_API_URL not configured.";
         return;
@@ -634,39 +636,40 @@ async function submitScore() {
     }
     
     submitScoreBtn.disabled = true;
-    submitMessageElement.innerText = "Submitting score...";
+    submitMessageElement.innerText = "Submitting score via GET request...";
 
     try {
-        const payload = {
-            name: name,
-            score: finalScore
-        };
-        
-        const response = await fetch(LEADERBOARD_API_URL, {
-            redirect: 'follow',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify(payload)
+        // 2. Build the full URL with score and name as query parameters
+        const params = new URLSearchParams({
+            score: finalScore,
+            name: name
         });
-
-        // The API returns JSON, so we expect a parseable response
-        const result = await response.json();
         
-        if (result.success) {
-            submitMessageElement.innerText = `Score submitted! ${name}: ${finalScore}`;
+        // Use the base API URL + the new parameters
+        const submitUrl = `${LEADERBOARD_API_URL}?${params.toString()}`;
+        
+        // 3. Send the GET request (no need for complex headers or body)
+        const response = await fetch(submitUrl, {
+            method: 'GET',
+            mode: 'cors',
+            redirect: 'follow' // Essential for GAS
+        });
+        
+        // 4. The server's doGet will return a success JSON after writing the score
+        const data = await response.json();
+        
+        if (data.success) {
+            submitMessageElement.innerText = `Score submitted! ${name}: ${data.score || finalScore}`;
         } else {
-            submitMessageElement.innerText = `Submission Failed: ${result.message || 'Unknown server error.'}`;
+            submitMessageElement.innerText = `Submission Failed: ${data.message || 'Server did not confirm success.'}`;
         }
         
-        // Refresh the leaderboard to show the new score
+        // 5. Refresh the leaderboard after successful submission
         fetchLeaderboard(); 
 
     } catch (error) {
-        // This catches CORS and Network errors
-        submitMessageElement.innerText = "Critical Network Error. Please ensure the game is running on Vercel/GitHub Pages or check Apps Script deployment access.";
-        console.error('Error submitting score:', error);
+        submitMessageElement.innerText = "Critical Network Error. Please ensure the Apps Script URL is correct and deployed.";
+        console.error('Error during score submission:', error);
     } finally {
         submitScoreBtn.disabled = false;
     }
