@@ -22,10 +22,30 @@
   <div id="results">
     <div class="content">
       <p>You missed the block</p>
+      <p>Your Score: <span id="final-score-display">0</span></p>
+      
+      <label for="player-name">Enter Name (Max 20 chars):</label>
+      <input type="text" id="player-name" maxlength="20" placeholder="Your Name">
+      <button id="submit-score-btn">Submit Score</button>
+      <p id="submit-message"></p>
+
       <p>To reset the game press R</p>
       <p>
         Follow me <a href="https://twitter.com/maitrivv" target="_top">@maitrivv</a>
       </p>
+      
+      <h3>Leaderboard (Top 10)</h3>
+      <table id="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          </tbody>
+      </table>
     </div>
   </div>
 

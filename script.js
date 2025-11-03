@@ -1,4 +1,4 @@
-
+const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycbwT9UV_V-fY2f4brB4BJZBoQ5rMuXekfTzS1BrmDZLcRqocgdykhfgFGkCZPN58TC5XdQ/exec";
 
 window.focus(); // Capture keys right away (by default focus is on editor)
 
@@ -17,6 +17,14 @@ const scoreElement = document.getElementById("score");
 const instructionsElement = document.getElementById("instructions");
 const resultsElement = document.getElementById("results");
 
+// NEW ELEMENTS
+const finalScoreDisplay = document.getElementById("final-score-display");
+const playerNameInput = document.getElementById("player-name");
+const submitScoreBtn = document.getElementById("submit-score-btn");
+const submitMessageElement = document.getElementById("submit-message");
+const leaderboardTableBody = document.querySelector("#leaderboard-table tbody");
+// Add event listener for the new submit button
+submitScoreBtn.addEventListener("click", submitScore);
 
 init();
 
@@ -498,7 +506,18 @@ function missedTheSpot() {
   scene.remove(topLayer.threejs);
 
   gameEnded = true;
-  if (resultsElement && !autopilot) resultsElement.style.display = "flex";
+
+  if (resultsElement && !autopilot) {
+    // 1. Show the results screen
+    resultsElement.style.display = "flex";
+    
+    // 2. Calculate and display the score
+    const finalScore = stack.length - 1;
+    finalScoreDisplay.innerText = finalScore;
+
+    // 3. Automatically fetch and display the leaderboard
+    fetchLeaderboard();
+  }
 }
 
 function animation(time) {
@@ -572,3 +591,91 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.render(scene, camera);
 });
+
+// --- New Leaderboard API Functions ---
+
+async function submitScore() {
+  const finalScore = stack.length - 1;
+  const name = playerNameInput.value.trim() || "Anonymous";
+
+  if (!LEADERBOARD_API_URL.startsWith("https://script.google.com/")) {
+    submitMessageElement.innerText = "Error: Please set your LEADERBOARD_API_URL in script.js!";
+    return;
+  }
+  
+  if (finalScore <= 0) {
+    submitMessageElement.innerText = "Score must be greater than 0 to submit!";
+    return;
+  }
+  
+  // Disable button to prevent multiple submissions
+  submitScoreBtn.disabled = true;
+  submitMessageElement.innerText = "Submitting score...";
+
+  try {
+    const response = await fetch(LEADERBOARD_API_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: name,
+        score: finalScore
+      })
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      submitMessageElement.innerText = `Score submitted! ${name}: ${finalScore}`;
+    } else {
+      submitMessageElement.innerText = `Submission Failed: ${result.message}`;
+    }
+    
+    // Refresh the leaderboard to show the new score
+    fetchLeaderboard(); 
+
+  } catch (error) {
+    submitMessageElement.innerText = "Network Error. Could not connect to the leaderboard.";
+    console.error('Error submitting score:', error);
+  } finally {
+    submitScoreBtn.disabled = false;
+  }
+}
+
+
+async function fetchLeaderboard() {
+  // Clear previous leaderboard results
+  leaderboardTableBody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+  
+  if (!LEADERBOARD_API_URL.startsWith("https://script.google.com/")) {
+    leaderboardTableBody.innerHTML = '<tr><td colspan="3">API URL not configured.</td></tr>';
+    return;
+  }
+  
+  try {
+    const response = await fetch(LEADERBOARD_API_URL + "?action=get_leaderboard", {
+      method: 'GET',
+      mode: 'cors'
+    });
+    const data = await response.json();
+    
+    leaderboardTableBody.innerHTML = ''; // Clear 'Loading' message
+    
+    if (data.leaderboard && data.leaderboard.length > 0) {
+      data.leaderboard.forEach(entry => {
+        const row = leaderboardTableBody.insertRow();
+        row.insertCell().innerText = entry.rank;
+        row.insertCell().innerText = entry.name;
+        row.insertCell().innerText = entry.score;
+      });
+    } else {
+      leaderboardTableBody.innerHTML = '<tr><td colspan="3">No scores yet! Be the first!</td></tr>';
+    }
+
+  } catch (error) {
+    leaderboardTableBody.innerHTML = '<tr><td colspan="3">Error loading leaderboard.</td></tr>';
+    console.error('Error fetching leaderboard:', error);
+  }
+}
