@@ -645,7 +645,6 @@ async function submitScore() {
         const response = await fetch(LEADERBOARD_API_URL, {
             redirect: 'follow',
             method: 'POST',
-            mode: 'cors',
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8',
             },
