@@ -4,7 +4,7 @@ const JSONBIN_MASTER_KEY = '$2a$10$81jSjo89/sxzUXgZGy0WrOIBUQ8kHrB3QV5nUAVNkcnMR
 
 // Paste your Bin ID here (e.g., 65f2d5a1dc74653a992e59e5)
 const JSONBIN_ID = '69086287ae596e708f411b5a'; 
-const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycbyrkK8ESRAmHXNTsItFQkK6JOqzu6hrHlUT7iuuhs-Hr8xl2Q0r6PqoaCui1iRLx4VX_A/exec"; 
+const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycbzyssVD9O8BCUm4P64uV_W2sGP-pdf_VTNtuFdDqzPR0Ipn2IVqg9VRD5BtyUAUcfh7nA/exec"; 
 // Remove the JSONBIN_MASTER_KEY and JSONBIN_ID variables.
 // ... (rest of the existing variables)
 window.focus(); // Capture keys right away (by default focus is on editor)
