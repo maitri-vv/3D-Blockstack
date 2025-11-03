@@ -5,16 +5,30 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+# --------------------------------------------------------------------------------
+# FIX: Use TWO separate triggers for deployment and cleanup
+# --------------------------------------------------------------------------------
 on:
-  # Trigger this workflow on every Pull Request (PR) against the main branch
+  # Trigger deployment on PR opening/new commits (synchronize)
   pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
+      - master # Include master if you use it
+
+  # Trigger cleanup when a PR is closed (merged or manually closed)
+  pull_request_target:
+    types: [closed]
 
 jobs:
+  # ==============================================================================
+  # 1. DEPLOYMENT JOB (Runs when PR is opened/updated)
+  # ==============================================================================
   deploy-preview:
+    # Only run this job if the PR is NOT closing
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
-    # --- FIX 1: Add Permissions for Commenting on PR ---
+    
     permissions:
       contents: read
       pull-requests: write # Grants permission to comment on the PR
@@ -29,8 +43,8 @@ jobs:
       - name: Deploy Preview to Vercel
         id: vercel_deploy
         run: |
-          # --- FIX 2: Removed the incorrect "./fun-games" reference.
-          # The deployment now runs from the repository root, where index.html lives.
+          # The deployment command uses the branch name to create a unique preview URL.
+          # The branch name is automatically available to Vercel.
           vercel deploy \
             --token=${{ secrets.VERCEL_TOKEN }} \
             --prod=false \
@@ -39,13 +53,13 @@ jobs:
 
       - name: Extract Deployment URL
         id: get_url
+        # Extract URL from the last line of the Vercel output
         run: echo "PREVIEW_URL=$(cat deployment_url.txt | tail -n 1)" >> $GITHUB_OUTPUT
 
       - name: Comment on Pull Request with Preview URL
         uses: actions/github-script@v6
         with:
           script: |
-            // This script comments the preview URL on the PR
             const previewUrl = process.env.PREVIEW_URL;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -56,22 +70,28 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.get_url.outputs.PREVIEW_URL }}
 
-  # ... vercel-cleanup job remains the same
-          
-      # --------------------------------------------------------------------------------
-      # OPTIONAL: Add a Cleanup Job (highly recommended)
-      # --------------------------------------------------------------------------------
-  
+  # ==============================================================================
+  # 2. CLEANUP JOB (Runs when PR is closed/merged)
+  # ==============================================================================
   vercel-cleanup:
+    # FIX: Only run this job if the PR is closing.
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    needs: deploy-preview # Ensures cleanup runs AFTER deployment job completes
-    if: always() && github.event.pull_request.head.repo.full_name == github.repository # Only cleanup for same-repo PRs
     
+    # Needs deploy-preview is not necessary since they run on different events.
+
     steps:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Vercel Cleanup Deployment
-        # The 'alias rm' command removes the deployment associated with the PR branch
-        run: vercel alias rm ${{ github.event.pull_request.head.ref }} --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-        # The '|| true' ensures the workflow doesn't fail if the deployment is already gone
+        # FIX: Changed to 'vercel remove' (Vercel CLI v34+) for removing the deployment.
+        # The Vercel CLI removes deployments based on the git branch name.
+        run: |
+          echo "Attempting to remove Vercel deployment for branch: ${{ github.event.pull_request.head.ref }}"
+          vercel remove ${{ github.event.pull_request.head.ref }} \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes \
+            --scope ${{ secrets.VERCEL_ORG_ID }} \
+            --project ${{ secrets.VERCEL_PROJECT_ID }} \
+            || true # Ignore failure if deployment is already gone

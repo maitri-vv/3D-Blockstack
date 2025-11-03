@@ -1,0 +1,298 @@
+/* Theme Definitions */
+
+/* Default Theme (Sky & Grass) */
+:root {
+  --bg-gradient-top: #87CEEB;
+  --bg-gradient-bottom: #32CD32;
+  --ui-gradient-primary: linear-gradient(135deg, #ff6b6b, #ffd93d);
+  --ui-gradient-secondary: linear-gradient(135deg, #ffd93d, #ffb84d);
+  --ui-gradient-highlight: linear-gradient(135deg, #ffcc00, #ff9900);
+  --ui-gradient-divider: linear-gradient(to bottom, transparent, rgba(255, 200, 100, 0.25), transparent);
+  --ui-gradient-button: linear-gradient(135deg, rgba(80, 60, 40, 0.6), rgba(60, 45, 30, 0.6));
+  --ui-panel-bg: linear-gradient(135deg, rgba(50, 40, 30, 0.95), rgba(40, 35, 25, 0.95));
+  --ui-border-color: rgba(255, 200, 100, 0.2);
+  --ui-shadow-color: rgba(0, 0, 0, 0.5);
+  --particle-color: #ffffff;
+  --particle-special-color: #ffd700;
+  --block-hue-base: 30;
+  --block-saturation: 100%;
+  --block-lightness: 50%;
+  --scene-bg-top: #ff9f43;
+  --scene-bg-middle: #feca57;
+  --scene-bg-bottom: #f8e9a1;
+}
+
+/* Night Theme */
+.theme-night {
+  --bg-gradient-top: #0f2027;
+  --bg-gradient-bottom: #203a43;
+  --ui-gradient-primary: linear-gradient(135deg, #4facfe, #00f2fe);
+  --ui-gradient-secondary: linear-gradient(135deg, #00f2fe, #4facfe);
+  --ui-gradient-highlight: linear-gradient(135deg, #00f2fe, #0072ff);
+  --ui-gradient-divider: linear-gradient(to bottom, transparent, rgba(0, 242, 254, 0.25), transparent);
+  --ui-gradient-button: linear-gradient(135deg, rgba(15, 32, 39, 0.6), rgba(32, 58, 67, 0.6));
+  --ui-panel-bg: linear-gradient(135deg, rgba(15, 32, 39, 0.95), rgba(32, 58, 67, 0.95));
+  --ui-border-color: rgba(0, 242, 254, 0.2);
+  --ui-shadow-color: rgba(0, 0, 0, 0.7);
+  --particle-color: #4facfe;
+  --particle-special-color: #00f2fe;
+  --block-hue-base: 195;
+  --block-saturation: 100%;
+  --block-lightness: 60%;
+  --scene-bg-top: #0f2027;
+  --scene-bg-middle: #203a43;
+  --scene-bg-bottom: #2c5364;
+}
+
+/* Sunset Theme */
+.theme-sunset {
+  --bg-gradient-top: #ff7e5f;
+  --bg-gradient-bottom: #feb47b;
+  --ui-gradient-primary: linear-gradient(135deg, #f953c6, #b91d73);
+  --ui-gradient-secondary: linear-gradient(135deg, #b91d73, #f953c6);
+  --ui-gradient-highlight: linear-gradient(135deg, #f953c6, #b91d73);
+  --ui-gradient-divider: linear-gradient(to bottom, transparent, rgba(249, 83, 198, 0.25), transparent);
+  --ui-gradient-button: linear-gradient(135deg, rgba(185, 29, 115, 0.6), rgba(249, 83, 198, 0.6));
+  --ui-panel-bg: linear-gradient(135deg, rgba(255, 126, 95, 0.95), rgba(254, 180, 123, 0.95));
+  --ui-border-color: rgba(249, 83, 198, 0.2);
+  --ui-shadow-color: rgba(0, 0, 0, 0.5);
+  --particle-color: #f953c6;
+  --particle-special-color: #b91d73;
+  --block-hue-base: 320;
+  --block-saturation: 90%;
+  --block-lightness: 65%;
+  --scene-bg-top: #ff7e5f;
+  --scene-bg-middle: #feb47b;
+  --scene-bg-bottom: #ffcda5;
+}
+
+/* Apply CSS variables to existing styles */
+body {
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-top) 70%, var(--bg-gradient-bottom) 70%, var(--bg-gradient-bottom) 100%);
+}
+
+#results {
+  background: var(--ui-panel-bg);
+  box-shadow: 0 20px 60px var(--ui-shadow-color),
+    0 0 0 1px var(--ui-border-color);
+}
+
+.game-over-title h1 {
+  background: var(--ui-gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.score-value {
+  background: var(--ui-gradient-secondary);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.high-score .score-value {
+  background: var(--ui-gradient-highlight);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.score-divider {
+  background: var(--ui-gradient-divider);
+}
+
+.restart-hint kbd {
+  background: var(--ui-gradient-button);
+  border: 1px solid var(--ui-border-color);
+}
+
+/* Theme Selector UI */
+#theme-selector {
+  position: absolute;
+  top: clamp(8px, 2.5vh, 20px);
+  right: clamp(120px, 15vw, 200px);
+  z-index: 11;
+  display: flex;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 50px;
+  backdrop-filter: blur(5px);
+}
+
+.theme-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  background-clip: padding-box;
+}
+
+.theme-button:hover {
+  transform: scale(1.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.theme-button.active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(255, 255, 255, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.5);
+  border-color: white;
+}
+
+#theme-default {
+  background: linear-gradient(135deg, #87CEEB 0%, #32CD32 100%);
+  box-shadow: 0 4px 12px rgba(135, 206, 235, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+#theme-default:hover {
+  box-shadow: 0 6px 18px rgba(135, 206, 235, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+#theme-default.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(135, 206, 235, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.6);
+}
+
+#theme-night {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.6), inset 0 1px 2px rgba(100, 200, 255, 0.2);
+}
+
+#theme-night:hover {
+  box-shadow: 0 6px 18px rgba(79, 172, 254, 0.5), inset 0 1px 2px rgba(100, 200, 255, 0.3);
+}
+
+#theme-night.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(79, 172, 254, 0.6), inset 0 1px 3px rgba(100, 200, 255, 0.4);
+}
+
+#theme-sunset {
+  background: linear-gradient(135deg, #ff6b35 0%, #ffa500 100%);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.5), inset 0 1px 2px rgba(255, 200, 100, 0.3);
+}
+
+#theme-sunset:hover {
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.7), inset 0 1px 2px rgba(255, 200, 100, 0.4);
+}
+
+#theme-sunset.active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(255, 107, 53, 0.7), inset 0 1px 3px rgba(255, 200, 100, 0.5);
+}
+
+/* Theme Controls Container */
+#theme-controls {
+  position: absolute;
+  top: clamp(120px, 12vh, 120px);
+  /* Position below the score */
+  right: clamp(12px, 2.5vw, 24px);
+  /* Align with score's right edge */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  #theme-controls {
+    top: clamp(60px, 10vh, 100px);
+  }
+}
+
+/* Responsive adjustments for theme selector */
+@media (max-width: 768px) {
+  #theme-selector {
+    right: clamp(60px, 12vw, 140px);
+  }
+
+  .theme-button {
+    width: 32px;
+    height: 32px;
+    border-width: 2.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  #theme-selector {
+    top: clamp(8px, 2.5vh, 16px);
+    right: clamp(50px, 10vw, 100px);
+    gap: 10px;
+    padding: 6px 10px;
+  }
+
+  .theme-button {
+    width: 28px;
+    height: 28px;
+    border-width: 2px;
+  }
+}
+
+/* Theme button tooltips */
+
+.theme-btn {
+  position: relative;
+}
+
+/* Tooltip text */
+.theme-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  right: 120%;
+  transform: translateY(-50%) translateX(-8px);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 2000;
+}
+
+/* Tooltip arrow */
+.theme-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 110%;
+  transform: translateY(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* Show tooltip on hover */
+.theme-btn:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(-12px);
+}
+
+.theme-btn:hover::before {
+  opacity: 1;
+}
+
+/* Theme-aware tooltip colors */
+body.theme-sunset .theme-btn::after,
+body.theme-default .theme-btn::after {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+}
+
+body.theme-night .theme-btn::after {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* White tooltip arrow for night theme */
+body.theme-night .theme-btn::before {
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+}
