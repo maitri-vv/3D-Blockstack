@@ -19,6 +19,8 @@ const resultsElement = document.getElementById("results");
 const endScoreElement = document.getElementById("end-score");
 const endHighScoreElement = document.getElementById("end-high-score");
 const restartTextElement = document.getElementById("restart-text");
+const shortcutsHelpElement = document.getElementById("shortcuts-help");
+const closeShortcutsButton = document.getElementById("close-shortcuts");
 
 // High score
 const HIGH_SCORE_KEY = "stackerHighScore";
@@ -184,7 +186,7 @@ function init() {
     0, // near plane
     100 // far plane
   );
-
+  
   /*
   // If you want to use perspective camera instead, uncomment these lines
   camera = new THREE.PerspectiveCamera(
@@ -412,6 +414,9 @@ function splitBlockAndAddNextOneIfOverlaps() {
   const overhangSize = Math.abs(delta);
   const overlap = size - overhangSize;
 
+  const overlapPercent = Math.max(0, Math.round((overlap / size) * 100));
+  showOverlapPopup(overlapPercent);
+
   const overlapPercent = Math.max(0,Math.round((overlap / size) * 100));
   showOverlapPopup(overlapPercent);
 
@@ -437,7 +442,7 @@ function splitBlockAndAddNextOneIfOverlaps() {
       scoreElement.classList.add("score-updated");
       setTimeout(() => {
         scoreElement.classList.remove("score-updated");
-      }, 400); // Remove class after animation duration
+      }, 400);
     }
   } else {
     missedTheSpot();
@@ -451,6 +456,11 @@ function showOverlapPopup(percent) {
 
   // Color feedback
   if (percent >= 90) {
+    popup.style.background = "rgba(0, 128, 0, 0.8)"; 
+  } else if (percent >= 60) {
+    popup.style.background = "rgba(255, 165, 0, 0.8)"; 
+  } else {
+    popup.style.background = "rgba(178, 34, 34, 0.8)"; 
     popup.style.background = "rgba(0, 128, 0, 0.8)"; // green
   } else if (percent >= 60) {
     popup.style.background = "rgba(255, 165, 0, 0.8)"; // orange
@@ -481,7 +491,7 @@ function missedTheSpot() {
   gameEnded = true;
 
   // Evaluate and update high score
-  const currentScore = Math.max(0, stack.length - 2); // Exclude foundation and first moving layer
+  const currentScore = Math.max(0, stack.length - 2);
 
   if (currentScore > highScore) {
     highScore = currentScore;
@@ -490,7 +500,7 @@ function missedTheSpot() {
   if (endScoreElement) endScoreElement.innerText = `${currentScore} ◆`;
   if (endHighScoreElement) endHighScoreElement.innerText = `${highScore} ◆`;
   updateRestartMessage();
-  // Show results dialog when game ends
+  
   if (resultsElement) {
     setTimeout(() => {
       resultsElement.style.display = "flex";
@@ -505,11 +515,14 @@ const muteBtn = document.createElement("button");
 muteBtn.id = "muteBtn";
 muteBtn.textContent = "🔊";
 document.body.appendChild(muteBtn);
-muteBtn.addEventListener("click", () => {
+
+function toggleMute() {
   muted = !muted;
   sounds.bgm.muted = muted;
   muteBtn.textContent = muted ? "🔇" : "🔊";
-});
+}
+
+muteBtn.addEventListener("click", toggleMute);
 
 function enableBackgroundMusic() {
   sounds.bgm.play().catch(() => { });
@@ -525,11 +538,30 @@ function playPlaceSound() {
     s.play().catch(() => { });
   }
 }
+
 function playFailSound() {
   if (!muted) {
     const s = sounds.fail.cloneNode();
     s.volume = 0.7;
     s.play().catch(() => { });
+  }
+}
+
+// ----- Shortcuts Modal -----
+function openShortcuts() {
+  if (shortcutsHelpElement) shortcutsHelpElement.style.display = "flex";
+}
+
+function closeShortcuts() {
+  if (shortcutsHelpElement) shortcutsHelpElement.style.display = "none";
+}
+
+function toggleShortcuts() {
+  if (!shortcutsHelpElement) return;
+  if (shortcutsHelpElement.style.display === "flex") {
+    closeShortcuts();
+  } else {
+    openShortcuts();
   }
 }
 
@@ -554,21 +586,37 @@ document.addEventListener("keydown", (e) => {
       startGame();
     }
   }
-}, true);
+  if (e.key === "m" || e.key === "M") {
+    e.preventDefault();
+    toggleMute();
+  }
+  if (e.key === "h" || e.key === "H") {
+    e.preventDefault();
+    toggleShortcuts();
+  }
+  if (e.key === "Escape") {
+    e.preventDefault();
+    if (shortcutsHelpElement && shortcutsHelpElement.style.display === "flex") {
+      closeShortcuts();
+    } else if (resultsElement && resultsElement.style.display === "flex") {
+      resultsElement.style.display = "none";
+    }
+  }
+}, false);
+
 window.addEventListener(
   "touchstart",
   (e) => {
     if (
-      e.target.closest(".twitter-link") ||  // The Twitter link
-      e.target.closest("#muteBtn") ||       // The mute button
-      e.target.closest("#theme-controls") || // The theme buttons container
+      e.target.closest(".twitter-link") ||
+      e.target.closest("#muteBtn") ||
+      e.target.closest("#theme-controls") ||
+      e.target.closest("#shortcuts-help") ||
       e.target.closest("#close-results")
     ) {
-      // If it was, do nothing and let the browser handle the 'click' event
       return;
     }
 
-    // Otherwise, it's a tap for the game
     e.preventDefault();
     gameEnded ? startGame() : eventHandler();
   },
@@ -582,6 +630,13 @@ if (closeResultsBtn) {
     if (resultsElement) {
       resultsElement.style.display = "none";
     }
+  });
+}
+
+// Close shortcuts dialog button
+if (closeShortcutsButton) {
+  closeShortcutsButton.addEventListener("click", () => {
+    closeShortcuts();
   });
 }
 
