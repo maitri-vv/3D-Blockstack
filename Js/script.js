@@ -15,6 +15,82 @@ let renderer;
 let world;
 let lastTime = 0;
 let particleData = null;
+let backgroundParticles = null;
+
+const fallbackThemeColors = {
+  sceneBackground: {
+    top: "#ff9f43",
+    middle: "#feca57",
+    bottom: "#f8e9a1"
+  },
+  particleColor: 0xffffff,
+  particleSpecialColor: 0xffd700,
+  blockHueBase: 30
+};
+
+function getThemeColors() {
+  return window.themeManager?.getCurrentThemeColors?.() ||
+    fallbackThemeColors;
+}
+
+function createGradientBackground(colors) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = 512;
+  canvas.height = 512;
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, colors.top);
+  gradient.addColorStop(0.5, colors.middle);
+  gradient.addColorStop(1, colors.bottom);
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function getBlockColor(layerIndex) {
+  const colors = getThemeColors();
+  return new THREE.Color(
+    `hsl(${colors.blockHueBase + layerIndex * 4}, 100%, 50%)`
+  );
+}
+
+function updateSceneColors() {
+  if (!scene) return;
+
+  const colors = getThemeColors();
+  const previousBackground = scene.background;
+  scene.background = createGradientBackground(colors.sceneBackground);
+
+  if (previousBackground?.dispose) {
+    previousBackground.dispose();
+  }
+
+  if (particleData?.particles?.material?.color) {
+    particleData.particles.material.color.setHex(colors.particleColor);
+  }
+
+  if (backgroundParticles?.material?.color) {
+    backgroundParticles.material.color.setHex(colors.particleColor);
+  }
+
+  stack?.forEach((layer, index) => {
+    layer.threejs.material.color.copy(getBlockColor(index));
+  });
+
+  overhangs?.forEach((overhang) => {
+    overhang.threejs.material.color.copy(getBlockColor(stack.length));
+  });
+
+  scene.traverse((object) => {
+    if (object.userData.isPlacementRing) {
+      object.material.color.setHex(colors.particleSpecialColor);
+    }
+  });
+}
 
 function notifyPlayablesReady() {
   if (
@@ -343,58 +419,9 @@ camera = new THREE.OrthographicCamera(
   // Gradient background
   // ----------------------------------------------------------
 
-  function createGradientBackground() {
-    const canvas =
-      document.createElement(
-        "canvas"
-      );
-
-    const ctx =
-      canvas.getContext("2d");
-
-    canvas.width = 512;
-    canvas.height = 512;
-
-    const gradient =
-      ctx.createLinearGradient(
-        0,
-        0,
-        0,
-        canvas.height
-      );
-
-    gradient.addColorStop(
-      0,
-      "#ff9f43"
-    );
-
-    gradient.addColorStop(
-      0.5,
-      "#feca57"
-    );
-
-    gradient.addColorStop(
-      1,
-      "#f8e9a1"
-    );
-
-    ctx.fillStyle =
-      gradient;
-
-    ctx.fillRect(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    return new THREE.CanvasTexture(
-      canvas
-    );
-  }
-
-  scene.background =
-    createGradientBackground();
+  scene.background = createGradientBackground(
+    getThemeColors().sceneBackground
+  );
 
 
   // ----------------------------------------------------------
@@ -478,12 +505,12 @@ renderer.domElement.style.display = "block";
   // Particles
   // ----------------------------------------------------------
 
-  createParticleBackground(
-    scene
-  );
+  backgroundParticles = createParticleBackground(scene);
 
   particleData =
     createParticles();
+
+  updateSceneColors();
 
 
   // ----------------------------------------------------------
@@ -600,7 +627,7 @@ function createRingEffect(
 
   const ringMaterial =
     new THREE.MeshBasicMaterial({
-      color: 0xffd700,
+      color: getThemeColors().particleSpecialColor,
       transparent: true,
       opacity: 0.8,
       side: THREE.DoubleSide
@@ -620,6 +647,8 @@ function createRingEffect(
 
   ringMesh.rotation.x =
     -Math.PI / 2;
+
+  ringMesh.userData.isPlacementRing = true;
 
   scene.add(
     ringMesh
@@ -780,12 +809,6 @@ function addLayer(
   stack.push(
     layer
   );
-
-  createRingEffect(
-    x,
-    y,
-    z
-  );
 }
 
 
@@ -908,13 +931,7 @@ function generateBox(
       depth
     );
 
-  const color =
-    new THREE.Color(
-      `hsl(${
-        30 +
-        stack.length * 4
-      }, 100%, 50%)`
-    );
+  const color = getBlockColor(stack.length);
 
   const material =
     new THREE.MeshLambertMaterial({
@@ -1157,6 +1174,13 @@ function splitBlockAndAddNextOneIfOverlaps() {
       overlap,
       size,
       delta
+    );
+
+    // Celebrate only a successful placement, not a newly created layer.
+    createRingEffect(
+      topLayer.threejs.position.x,
+      topLayer.threejs.position.y,
+      topLayer.threejs.position.z
     );
 
     const overhangShift =
